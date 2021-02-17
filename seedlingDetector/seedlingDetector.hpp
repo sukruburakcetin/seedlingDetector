@@ -1,4 +1,3 @@
-#pragma once
 #include <opencv2/core/mat.hpp>
 
 class seedlingDetectorResult
@@ -27,4 +26,5 @@ public:
 
 
 };
+
 seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedlingDetectorPreferences& prefs);

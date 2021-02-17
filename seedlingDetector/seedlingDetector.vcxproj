@@ -143,12 +143,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AutoThreshold.cpp" />
     <ClCompile Include="ColourDeconvolution.cpp" />
+    <ClCompile Include="Helpers.cpp" />
+    <ClCompile Include="ParticleAnalyzer.cpp" />
     <ClCompile Include="seedlingDetector.cpp" />
+    <ClCompile Include="WatershedCustom.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AutoThreshold.hpp" />
     <ClInclude Include="ColourDeconvolution.hpp" />
+    <ClInclude Include="Helpers.hpp" />
+    <ClInclude Include="ParticleAnalyzer.hpp" />
     <ClInclude Include="seedlingDetector.hpp" />
+    <ClInclude Include="WatershedCustom.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

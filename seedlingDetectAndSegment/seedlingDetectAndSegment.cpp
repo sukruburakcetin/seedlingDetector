@@ -2,7 +2,10 @@
 //
 
 #include <iostream>
-#include "../seedlingDetector/seedlingDetector.cpp"
+
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+#include <seedlingDetector.cpp>
 using namespace cv;
 using namespace std;
 
@@ -24,8 +27,8 @@ int main()
 
     const seedlingDetectorResult res = seedlingDetector(src, dst, prefs);
 
-	imshow("Display window", dst);
-	int k = waitKey(0); // Wait for a keystroke in the window
+	//imshow("Display window", dst);
+	//int k = waitKey(0); // Wait for a keystroke in the window
 
 
 }
