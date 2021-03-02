@@ -5,32 +5,22 @@
 
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
-#include <seedlingDetector.cpp>
+#include <seedlingDetector.hpp>
 using namespace cv;
 using namespace std;
 
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    std::cout << "Seedling Classifier\n";
 
 	string image_path = "C:/test_image_seedling.png";
 
-
-
 	Mat src = imread(image_path, IMREAD_COLOR);
 	Mat dst;
-	
-
 
     seedlingDetectorPreferences prefs;
-
     const seedlingDetectorResult res = seedlingDetector(src, dst, prefs);
-
-	//imshow("Display window", dst);
-	//int k = waitKey(0); // Wait for a keystroke in the window
-
-
 }
 
 

@@ -33,6 +33,12 @@
     <ClCompile Include="..\seedlingDetector\WatershedCustom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\seedlingDetector\seedlingDetector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\seedlingDetector\RankFilters.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\seedlingDetector\ColourDeconvolution.hpp">
