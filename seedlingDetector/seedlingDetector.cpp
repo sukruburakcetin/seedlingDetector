@@ -112,7 +112,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		}
 	}
 
-	cout << "highestIntensityColumnIndex: " << highestIntensityColumnIndex << endl;
+	//cout << "highestIntensityColumnIndex: " << highestIntensityColumnIndex << endl;
 
 	for (int y = highestIntensityColumnIndex; y < highestIntensityColumnIndex+1; y++)
 	{
@@ -135,7 +135,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	int leftStart = lastWhitePixelInLine - horizontalMarginValue;
 	int rightStart = lastWhitePixelInLine + horizontalMarginValue;
 	int rectWidth = horizontalMarginValue*2;
-	int currentValue = 0;
+	int currentValue = 0, whitePointsAtCurrentRow = 0, sumWhitePixels = 0;
 	bool rectengleDetected = false;
 	Mat seedlingArea;
 	for (int x = leftStart; x < leftStart +1; x++)
@@ -144,13 +144,13 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		{	
 			countHeight++;
 
-			cout << "point111: " << Point(x, y) << endl;
+			//cout << "point111: " << Point(x, y) << endl;
 
 			currentValue = filteredImageNew.at<uchar>(y, x);
 			//test.at<uchar>(y, x) = 255;
 			if(currentValue == 255 && rectengleDetected==false)
 			{
-				cout << "currentValue: " << currentValue << endl;
+				//cout << "currentValue: " << currentValue << endl;
 				cv::Rect rectSeedling(x, y, rectWidth, countHeight);
 				seedlingArea = filteredImageNew(rectSeedling);
 				rectengleDetected = true;
@@ -163,6 +163,27 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	morphologyEx(seedlingAreaEroded, seedlingAreaDilated, MORPH_DILATE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 3);
 	
 
+	//devam edilecek
+	/*for (int y = 0; y < seedlingAreaDilated.cols; y++)
+	{
+		for (int x = 0; x < seedlingAreaDilated.rows; x++)
+		{
+			value = seedlingAreaDilated.at<uchar>(x, y);
+			if (value == 255) {
+				whitePointsAtCurrentRow++;
+				sumWhitePixels +=whitePointsAtCurrentRow;
+			}
+			if (tempy != y)
+			{
+				whitePointsAtCurrentRow = 0;
+			}
+			//			test.at<uchar>(x, y) = 255;
+			//cout << "point: " << Point(x, y) << endl;
+		}
+	}*/
+
+	//cout << "sumWhitePixels: " << sumWhitePixels << endl;
+	
 	//imwrite("seedlingArea.png", seedlingArea);
 
 	//cout << "geldi: " << endl;
