@@ -36,6 +36,9 @@
     <ClCompile Include="RankFilters.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FillHoles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ColourDeconvolution.hpp">
@@ -60,6 +63,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LambdaParallel.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FillHoles.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

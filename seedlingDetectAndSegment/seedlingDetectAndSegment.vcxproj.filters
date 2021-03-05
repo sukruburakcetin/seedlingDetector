@@ -39,6 +39,9 @@
     <ClCompile Include="..\seedlingDetector\RankFilters.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\seedlingDetector\FillHoles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\seedlingDetector\ColourDeconvolution.hpp">
@@ -54,6 +57,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\seedlingDetector\WatershedCustom.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\seedlingDetector\FillHoles.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

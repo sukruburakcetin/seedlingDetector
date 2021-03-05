@@ -35,6 +35,7 @@
 #include "ParticleAnalyzer.hpp"
 #include "WatershedCustom.hpp";
 #include "RankFilters.hpp"
+#include "FillHoles.hpp"
 
 using namespace std;
 using namespace cv;
@@ -42,9 +43,8 @@ using namespace cv;
 seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedlingDetectorPreferences& prefs)
 {
 	seedlingDetectorResult result;
-	
-	Mat rgbColorSpace, labColorSpace, srcMedianF, srcGausF, filteredImage;
 
+	Mat rgbColorSpace, labColorSpace, srcMedianF, srcGausF, filteredImage;
 	cvtColor(src, rgbColorSpace, COLOR_RGBA2RGB);
 	cvtColor(rgbColorSpace, labColorSpace, COLOR_RGB2Lab);
 
@@ -53,68 +53,153 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	src = lab[0];
 
 	medianFilter(src, srcMedianF, 2.f);
-	GaussianBlur(srcMedianF, srcGausF, Size(5, 5),1,1);
-
+	GaussianBlur(srcMedianF, srcGausF, Size(5, 5), 1, 1);
 
 	Mat thresholded_dst = srcGausF.clone();
 	Mat thresholded_dst_new = Mat::zeros(src.size(), CV_8UC1);
 	autoThreshold(thresholded_dst, ThresholdMethod::Default);
 	thresholded_dst = ~thresholded_dst;
-	watershedProcess(thresholded_dst, thresholded_dst, 41);
-
+	//watershedProcess(thresholded_dst, thresholded_dst, 41);
+	fillHoles(thresholded_dst);
 	Mat thresholded_labels, thresholded_stats, thresholded_centroids, thresholded_doubleStats;
 	int count = analyzeParticles(thresholded_dst, thresholded_labels, thresholded_stats, thresholded_centroids, thresholded_doubleStats, ParticleAnalyzer::FOUR_CONNECTED | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES, 20);
 
-	Mat filterRegion = thresholded_labels > 0;
-
-	int topStart = 200;
-	int bottomStart = thresholded_dst.rows - 200;
+	int topStart = 150;
+	int bottomStart = thresholded_dst.rows - 150;
 	for (int i = 0; i < thresholded_dst.cols; i++) {
-		for (int j = topStart; j < bottomStart; j++){
+		for (int j = topStart; j < bottomStart; j++) {
 			// You can now access the pixel value with cv::Vec3b
 			//std::cout << "value: " << thresholded_dst.at<uchar>(i, j) << std::endl;
 			cv::circle(thresholded_dst_new, Point(i, j), 0, 255, -1);
 		}
 	}
-
-
-	bitwise_and(thresholded_dst_new, filterRegion, filteredImage);
+	bitwise_and(thresholded_dst, thresholded_dst_new, filteredImage);
 	Mat filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, roiMask;
-	int count2 = analyzeParticles(filteredImage, filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, ParticleAnalyzer::FOUR_CONNECTED | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES, 20);
-	//Mat roi;
-	Mat test = Mat::zeros(src.size(), CV_8UC1);
-	Rect bounds;
-	int maxHeightRoi = 0;
-	for (int i = 1; i < filteredImage_stats.rows; i++) {
+	int count2 = analyzeParticles(filteredImage, filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, ParticleAnalyzer::FOUR_CONNECTED | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES, 50);
+	Mat filteredImageNew = filteredImage_labels > 0;
 
+	//Mat test = Mat::zeros(src.size(), CV_8UC1);
 	
-		
-		//const Mat dilateKernel = getStructuringElement(MORPH_ELLIPSE, Size(7, 7));
-
-		int currentHeightOfRoi = filteredImage_stats.at<int>(i, CC_STAT_HEIGHT);
-		cout << "Currentheight: " << currentHeightOfRoi << endl;
-		if (currentHeightOfRoi > maxHeightRoi)
+	int value = 0;
+	int whitePixelCounter = 0;
+	int tempy = 0;
+	int maxIntensity = 0;
+	int highestIntensityColumnIndex = 0;
+	int lastWhitePixelInLine = 0;
+	int countHeight = 0;
+	for (int y = 0; y < filteredImageNew.cols; y++)
+	{
+		for (int x = 0; x < filteredImageNew.rows; x++)
 		{
-			maxHeightRoi = currentHeightOfRoi;
-			bounds = getRect(filteredImage, filteredImage_stats, i);
-			//roi = filteredImage(bounds) == i;
-			
+			//cout << "point: " << Point(x, y) << endl;
+			value = filteredImageNew.at<uchar>(x, y);
+			if (value == 255){
+				whitePixelCounter++;
+				//cout << "whitePixelCounter: " << whitePixelCounter << endl;
+			}
+			if (whitePixelCounter > maxIntensity)
+			{
+				maxIntensity = whitePixelCounter;
+				highestIntensityColumnIndex = y;
+			}
+			if (tempy != y)
+			{
+			    whitePixelCounter = 0;
+			}
+			tempy = y;
+			//cout << "maxIntensity: " << maxIntensity << endl;
+			//cout << "highestIntensityColumnIndex: " << highestIntensityColumnIndex << endl;
 		}
-
-		
-		//Mat clone_roi = roi.clone();
-	
-
-		
-		//cout << "centerRoi: " << center << endl;
-		
 	}
 
-	test(bounds).setTo(255);
+	cout << "highestIntensityColumnIndex: " << highestIntensityColumnIndex << endl;
 
-	/*int centroidPointX = Point(filteredImage_centroids.at<double>(i, 0), filteredImage_centroids.at<double>(i, 1)).x;
-	int centroidPointY = Point(filteredImage_centroids.at<double>(i, 0), filteredImage_centroids.at<double>(i, 1)).y;*/
-	//Rect region_rect = Rect(centroidPointX - (filteredImage.cols / 4), centroidPointY - (filteredImage.rows / 4), filteredImage.cols / 2, filteredImage.rows / 2);
-	//Mat regionImage = filteredImage(region_rect).clone();
+	for (int y = highestIntensityColumnIndex; y < highestIntensityColumnIndex+1; y++)
+	{
+		for (int x = 0; x < filteredImageNew.rows; x++)
+		{
+			value = filteredImageNew.at<uchar>(x, y);
+			if (value == 255) {
+				lastWhitePixelInLine = x;
+				//cout << "whitePixelCounter: " << whitePixelCounter << endl;
+			}
+			//			test.at<uchar>(x, y) = 255;
+			//cout << "point: " << Point(x, y) << endl;
+		}
+	}
+
+	//cout << "lastWhitePixelInLine: " << lastWhitePixelInLine << endl;
+
+	int horizontalMarginValue = 50;
+	int verticalMarginValue = 30;
+	int leftStart = lastWhitePixelInLine - horizontalMarginValue;
+	int rightStart = lastWhitePixelInLine + horizontalMarginValue;
+	int rectWidth = horizontalMarginValue*2;
+	int currentValue = 0;
+	bool rectengleDetected = false;
+	Mat seedlingArea;
+	for (int x = leftStart; x < leftStart +1; x++)
+	{
+		for (int y = lastWhitePixelInLine- verticalMarginValue; y > 0; y--)
+		{	
+			countHeight++;
+
+			cout << "point111: " << Point(x, y) << endl;
+
+			currentValue = filteredImageNew.at<uchar>(y, x);
+			//test.at<uchar>(y, x) = 255;
+			if(currentValue == 255 && rectengleDetected==false)
+			{
+				cout << "currentValue: " << currentValue << endl;
+				cv::Rect rectSeedling(x, y, rectWidth, countHeight);
+				seedlingArea = filteredImageNew(rectSeedling);
+				rectengleDetected = true;
+				//rectangle(test, rect, Scalar(255, 255, 255));
+			}
+		}
+	}
+	Mat seedlingAreaEroded, seedlingAreaDilated;
+	morphologyEx(seedlingArea, seedlingAreaEroded, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 3);
+	morphologyEx(seedlingAreaEroded, seedlingAreaDilated, MORPH_DILATE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 3);
+	
+
+	//imwrite("seedlingArea.png", seedlingArea);
+
+	//cout << "geldi: " << endl;
+
+	//test(bounds).setTo(255);
+	
 	return result;
 }
+
+
+	//Rect bounds;
+	//int maxHeightRoi = 0;
+	//for (int i = 1; i < filteredImage_stats.rows; i++) {
+
+	//	int currentHeightOfRoi = filteredImage_stats.at<int>(i, CC_STAT_HEIGHT);
+	//	cout << "Currentheight: " << currentHeightOfRoi << endl;
+	//	if (currentHeightOfRoi > maxHeightRoi)
+	//	{
+	//		maxHeightRoi = currentHeightOfRoi;
+	//		bounds = getRect(filteredImage, filteredImage_stats, i);
+	//		bounds.x = bounds.x - 100;
+	//		bounds.y = bounds.y - 100;
+	//		bounds.width = bounds.width + 150;
+	//		bounds.height = bounds.height + 150;
+	//		//roi = filteredImage(bounds) == i;
+	//	}
+	//}
+
+	//int widthRrect = bounds.width;
+	//int heightRect = bounds.height;
+	//int x0 = bounds.x;
+	//int y0 = bounds.y;
+	//cout << "x0: " << x0 << endl;
+	//cout << "y0: " << y0 << endl;
+	//cout << "Width: " << widthRrect << endl;
+	//cout << "Height: " << heightRect << endl;
+	//int widthN = x0 + widthRrect;
+	//int heightN = y0 + heightRect;
+	//cout << "WidthN: " << widthN << endl;
+	//cout << "HeightN: " << heightN << endl;

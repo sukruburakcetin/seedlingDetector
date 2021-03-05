@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="AutoThreshold.cpp" />
     <ClCompile Include="ColourDeconvolution.cpp" />
+    <ClCompile Include="FillHoles.cpp" />
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="ParticleAnalyzer.cpp" />
     <ClCompile Include="RankFilters.cpp" />
@@ -154,6 +155,7 @@
   <ItemGroup>
     <ClInclude Include="AutoThreshold.hpp" />
     <ClInclude Include="ColourDeconvolution.hpp" />
+    <ClInclude Include="FillHoles.hpp" />
     <ClInclude Include="Helpers.hpp" />
     <ClInclude Include="LambdaParallel.hpp" />
     <ClInclude Include="ParticleAnalyzer.hpp" />

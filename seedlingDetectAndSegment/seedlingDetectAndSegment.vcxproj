@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="..\seedlingDetector\AutoThreshold.cpp" />
     <ClCompile Include="..\seedlingDetector\ColourDeconvolution.cpp" />
+    <ClCompile Include="..\seedlingDetector\FillHoles.cpp" />
     <ClCompile Include="..\seedlingDetector\Helpers.cpp" />
     <ClCompile Include="..\seedlingDetector\ParticleAnalyzer.cpp" />
     <ClCompile Include="..\seedlingDetector\RankFilters.cpp" />
@@ -155,6 +156,7 @@
   <ItemGroup>
     <ClInclude Include="..\seedlingDetector\AutoThreshold.hpp" />
     <ClInclude Include="..\seedlingDetector\ColourDeconvolution.hpp" />
+    <ClInclude Include="..\seedlingDetector\FillHoles.hpp" />
     <ClInclude Include="..\seedlingDetector\Helpers.hpp" />
     <ClInclude Include="..\seedlingDetector\ParticleAnalyzer.hpp" />
     <ClInclude Include="..\seedlingDetector\WatershedCustom.hpp" />
