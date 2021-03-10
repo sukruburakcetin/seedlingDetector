@@ -193,20 +193,20 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	int averageWhitePixels = (sumWhitePixels + rowIsCounted) / rowIsCounted;
 
-	cout << "averageWhitePixels: " << averageWhitePixels << endl;
+	//cout << "averageWhitePixels: " << averageWhitePixels << endl;
 
 	int avrgWhiteCouplePxCountInCurrentRow = averageWhitePixels / 2;
 	int dest = seedlingAreaDilated.cols;
-	int leafStartPixelRowAmount = 0;
+	int leafStartPixelRowAmountInBody = 0;
 	for (int x = 0; x < seedlingAreaDilated.rows; x++)
 	{
 		for (int y = 0; y < dest; y++)
 		{
-			cout << "x: " << x << endl;
-			cout << "y: " << y << endl;
+			//cout << "x: " << x << endl;
+			//cout << "y: " << y << endl;
 
 			value = seedlingAreaDilated.at<uchar>(x, y);
-			cout << "value: " << value << endl;
+			//cout << "value: " << value << endl;
 
 			tempNextPoint = seedlingAreaDilated.at<uchar>(x, y + 1);
 			if (value == 255 && tempNextPoint == 255) {
@@ -215,8 +215,9 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 				//cout << "point: " << Point(x, y) << endl;
 				//seedlingArea.at<uchar>(x, y) = 0;
 				//cout << "whitePointsSuccesfulStreakAtCurrentRow: " << whitePointsSuccesfulStreakAtCurrentRowNew << endl;
-				cout << "pointbefore: " << Point(x, y) << endl;
-				cout << "whitePointsSuccesfulStreakAtCurrentRowNew: " << whitePointsSuccesfulStreakAtCurrentRowNew << endl;
+
+				//cout << "pointbefore: " << Point(x, y) << endl;
+				//cout << "whitePointsSuccesfulStreakAtCurrentRowNew: " << whitePointsSuccesfulStreakAtCurrentRowNew << endl;
 
 			}
 			else if (whitePointsSuccesfulStreakAtCurrentRowNew >= averageWhitePixels + 10 && check ==false)
@@ -226,7 +227,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 					seedlingArea.at<uchar>(x, z) = 0;
 				}
 				check = true;
-				leafStartPixelRowAmount = leafStartPixelRowAmount;
+				leafStartPixelRowAmountInBody = leafStartPixelRowAmountInBody +1;
 			}
 			if (tempyNewSecond != x)
 			{
@@ -234,11 +235,13 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 				check = false;
 			}
 			tempyNewSecond = x;
-			cout << "tempyNewSecondAfter: " << tempyNewSecond << endl;
-
 		}
 	}
-	cout << "ok: " << endl;
+
+	cout << "leafStartPixelRowAmountInBody: " << leafStartPixelRowAmountInBody << endl;
+	int seedlingHeight = (seedlingArea.rows + verticalMarginValue) - leafStartPixelRowAmountInBody;
+	cout << "seedlingHeight: " << seedlingHeight << " pixel." <<  endl;
+
 	return result;
 }
 
