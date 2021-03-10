@@ -1,29 +1,3 @@
-
-//seedlingDetector.cpp : This file contains the 'main' function. Program execution begins and ends there.
-
-/*Show Image and Pause*/
-
-//imshow("Display window", dst);
-//int k1 = waitKey(0); // Wait for a keystroke in the window
-
-/*Color Deconvolution*/
-
-//Mat channels[3]; //0: H, 1: DAB, 2: not used
-//ColourDeconvolution cd;
-//split(cd.process(src, "H DAB", prefs.vector01, prefs.vector02, prefs.vector03, prefs.vector11, prefs.vector12, prefs.vector13), channels);
-//channels[2].release();
-//channels[2] = NULL;
-//dst = channels[1].clone();
-
-/*Connected Component*/
-
-//Mat labels, stats, centroids, doubleStats;
-//int count = analyzeParticles(thresholded_dst, labels, stats, centroids, doubleStats, ParticleAnalyzer::FOUR_CONNECTED | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES, 0);
-
-/*Adaptive Thresholding*/
-
-//adaptiveThreshold(dst, thresholded_dst, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 171, 0);
-
 #include <iostream>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -267,3 +241,30 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	cout << "ok: " << endl;
 	return result;
 }
+
+/* ---------------------------------------------CODE ARCHIVE--------------------------------------------*/
+
+//seedlingDetector.cpp : This file contains the 'main' function. Program execution begins and ends there.
+
+/*Show Image and Pause*/
+
+//imshow("Display window", dst);
+//int k1 = waitKey(0); // Wait for a keystroke in the window
+
+/*Color Deconvolution*/
+
+//Mat channels[3]; //0: H, 1: DAB, 2: not used
+//ColourDeconvolution cd;
+//split(cd.process(src, "H DAB", prefs.vector01, prefs.vector02, prefs.vector03, prefs.vector11, prefs.vector12, prefs.vector13), channels);
+//channels[2].release();
+//channels[2] = NULL;
+//dst = channels[1].clone();
+
+/*Connected Component*/
+
+//Mat labels, stats, centroids, doubleStats;
+//int count = analyzeParticles(thresholded_dst, labels, stats, centroids, doubleStats, ParticleAnalyzer::FOUR_CONNECTED | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES, 0);
+
+/*Adaptive Thresholding*/
+
+//adaptiveThreshold(dst, thresholded_dst, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 171, 0);
