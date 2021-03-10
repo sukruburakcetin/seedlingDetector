@@ -75,14 +75,14 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	}
 	bitwise_and(thresholded_dst, thresholded_dst_new, filteredImage);
 	Mat filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, roiMask;
-	int count2 = analyzeParticles(filteredImage, filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, ParticleAnalyzer::FOUR_CONNECTED | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES, 50);
+	int count2 = analyzeParticles(filteredImage, filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, ParticleAnalyzer::FOUR_CONNECTED | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES, 200);
 	Mat filteredImageNew = filteredImage_labels > 0;
 
 	//Mat test = Mat::zeros(src.size(), CV_8UC1);
-	
+
 	int value = 0;
 	int whitePixelCounter = 0;
-	int tempy = 0;
+	int tempy = 0, tempyNew = 0, tempyNewSecond = 0;
 	int maxIntensity = 0;
 	int highestIntensityColumnIndex = 0;
 	int lastWhitePixelInLine = 0;
@@ -93,7 +93,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		{
 			//cout << "point: " << Point(x, y) << endl;
 			value = filteredImageNew.at<uchar>(x, y);
-			if (value == 255){
+			if (value == 255) {
 				whitePixelCounter++;
 				//cout << "whitePixelCounter: " << whitePixelCounter << endl;
 			}
@@ -104,7 +104,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 			}
 			if (tempy != y)
 			{
-			    whitePixelCounter = 0;
+				whitePixelCounter = 0;
 			}
 			tempy = y;
 			//cout << "maxIntensity: " << maxIntensity << endl;
@@ -114,7 +114,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	//cout << "highestIntensityColumnIndex: " << highestIntensityColumnIndex << endl;
 
-	for (int y = highestIntensityColumnIndex; y < highestIntensityColumnIndex+1; y++)
+	for (int y = highestIntensityColumnIndex; y < highestIntensityColumnIndex + 1; y++)
 	{
 		for (int x = 0; x < filteredImageNew.rows; x++)
 		{
@@ -134,25 +134,34 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	int verticalMarginValue = 30;
 	int leftStart = lastWhitePixelInLine - horizontalMarginValue;
 	int rightStart = lastWhitePixelInLine + horizontalMarginValue;
-	int rectWidth = horizontalMarginValue*2;
+	int bottomStartRect = lastWhitePixelInLine - verticalMarginValue;
+	int rectWidth = horizontalMarginValue * 2;
 	int currentValue = 0, whitePointsAtCurrentRow = 0, sumWhitePixels = 0;
 	bool rectengleDetected = false;
-	Mat seedlingArea;
-	for (int x = leftStart; x < leftStart +1; x++)
+	bool check = false;
+	Mat seedlingArea, complateSeedlingArea, complateSeedlingAreaBlanked;
+	for (int x = leftStart; x < leftStart + 1; x++)
 	{
-		for (int y = lastWhitePixelInLine- verticalMarginValue; y > 0; y--)
-		{	
+		for (int y = bottomStartRect; y > 0; y--)
+		{
 			countHeight++;
 
 			//cout << "point111: " << Point(x, y) << endl;
+			//cout << "bottomStartRect: " << bottomStartRect << endl;
 
 			currentValue = filteredImageNew.at<uchar>(y, x);
 			//test.at<uchar>(y, x) = 255;
-			if(currentValue == 255 && rectengleDetected==false)
+			if (currentValue == 255 && rectengleDetected == false)
 			{
 				//cout << "currentValue: " << currentValue << endl;
+				//cout << "x: " << x << endl;
+				//cout << "y: " << y << endl;
+
 				cv::Rect rectSeedling(x, y, rectWidth, countHeight);
+				cv::Rect rectComplateSeedling(x, 0, rectWidth, bottomStartRect);
+
 				seedlingArea = filteredImageNew(rectSeedling);
+				complateSeedlingArea = filteredImageNew(rectComplateSeedling);
 				rectengleDetected = true;
 				//rectangle(test, rect, Scalar(255, 255, 255));
 			}
@@ -161,66 +170,100 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	Mat seedlingAreaEroded, seedlingAreaDilated;
 	morphologyEx(seedlingArea, seedlingAreaEroded, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 3);
 	morphologyEx(seedlingAreaEroded, seedlingAreaDilated, MORPH_DILATE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 3);
-	
 
-	//devam edilecek
-	/*for (int y = 0; y < seedlingAreaDilated.cols; y++)
+	int startLeft = seedlingAreaDilated.cols;
+	int startAlternate = seedlingAreaDilated.rows - 1;
+	int tempNextPoint = 0, rowIsCounted = 0;
+	bool rowIsCountedCheck = false;
+	int whitePointsSuccesfulStreakAtCurrentRow = 0, whitePointsSuccesfulStreakAtCurrentRowNew = 0, whitePixelsCurrentRow = 0, reminder = 0;
+	//cout << "startLeft: " << startLeft << endl;
+	//cout << "startAlternate: " << startAlternate << endl;
+
+	for (int x = 0; x < seedlingAreaDilated.rows; x++)
 	{
-		for (int x = 0; x < seedlingAreaDilated.rows; x++)
+		for (int y = 0; y < seedlingAreaDilated.cols; y++)
 		{
 			value = seedlingAreaDilated.at<uchar>(x, y);
-			if (value == 255) {
-				whitePointsAtCurrentRow++;
-				sumWhitePixels +=whitePointsAtCurrentRow;
+			tempNextPoint = seedlingAreaDilated.at<uchar>(x, y + 1);
+			/*		cout << "point: " << Point(x, y) << endl;
+					cout << "value: " << value << endl;
+					cout << "tempNextPoint: " << tempNextPoint << endl;*/
+					/*		cout << "y: " << y << endl;
+							cout << "x: " << x << endl;
+							cout << "tempyNew: " << tempyNew << endl;*/
+
+			if (value == 255 && tempNextPoint == 255) {
+				whitePointsSuccesfulStreakAtCurrentRow = whitePointsSuccesfulStreakAtCurrentRow + 1;
+				/*seedlingAreaDilated.at<uchar>(x, y) = 0;*/
+				//cout << "whitePointsSuccesfulStreakAtCurrentRow: " << whitePointsSuccesfulStreakAtCurrentRow << endl;
+
+				sumWhitePixels = sumWhitePixels + 1;
+				if (whitePointsSuccesfulStreakAtCurrentRow > 8 && rowIsCountedCheck == false)
+				{
+					rowIsCounted = rowIsCounted + 1;
+					rowIsCountedCheck = true;
+				}
 			}
-			if (tempy != y)
+			else if (tempyNew != x)
 			{
-				whitePointsAtCurrentRow = 0;
+				whitePointsSuccesfulStreakAtCurrentRow = 0;
+				rowIsCountedCheck = false;
 			}
-			//			test.at<uchar>(x, y) = 255;
-			//cout << "point: " << Point(x, y) << endl;
+			tempyNew = x;
 		}
-	}*/
+	}
+	//vector<Point> whitee_pixels;   // output, locations of non-zero pixels
+	//cout << "rowIsCounted: " << rowIsCounted << endl;
+	//findNonZero(seedlingAreaDilated, whitee_pixels);
+	//cout << "Cloud all white pixels: " << whitee_pixels.size() << endl;
 
-	//cout << "sumWhitePixels: " << sumWhitePixels << endl;
-	
-	//imwrite("seedlingArea.png", seedlingArea);
+	int averageWhitePixels = (sumWhitePixels + rowIsCounted) / rowIsCounted;
 
-	//cout << "geldi: " << endl;
+	cout << "averageWhitePixels: " << averageWhitePixels << endl;
 
-	//test(bounds).setTo(255);
-	
+	int avrgWhiteCouplePxCountInCurrentRow = averageWhitePixels / 2;
+	int dest = seedlingAreaDilated.cols;
+	int leafStartPixelRowAmount = 0;
+	for (int x = 0; x < seedlingAreaDilated.rows; x++)
+	{
+		for (int y = 0; y < dest; y++)
+		{
+			cout << "x: " << x << endl;
+			cout << "y: " << y << endl;
+
+			value = seedlingAreaDilated.at<uchar>(x, y);
+			cout << "value: " << value << endl;
+
+			tempNextPoint = seedlingAreaDilated.at<uchar>(x, y + 1);
+			if (value == 255 && tempNextPoint == 255) {
+				whitePointsSuccesfulStreakAtCurrentRowNew = whitePointsSuccesfulStreakAtCurrentRowNew + 1;
+				/*seedlingAreaDilated.at<uchar>(x, y) = 0;*/
+				//cout << "point: " << Point(x, y) << endl;
+				//seedlingArea.at<uchar>(x, y) = 0;
+				//cout << "whitePointsSuccesfulStreakAtCurrentRow: " << whitePointsSuccesfulStreakAtCurrentRowNew << endl;
+				cout << "pointbefore: " << Point(x, y) << endl;
+				cout << "whitePointsSuccesfulStreakAtCurrentRowNew: " << whitePointsSuccesfulStreakAtCurrentRowNew << endl;
+
+			}
+			else if (whitePointsSuccesfulStreakAtCurrentRowNew >= averageWhitePixels + 10 && check ==false)
+			{
+				for (int z = 0; z < whitePointsSuccesfulStreakAtCurrentRowNew +2; z++)
+				{
+					seedlingArea.at<uchar>(x, z) = 0;
+				}
+				check = true;
+				leafStartPixelRowAmount = leafStartPixelRowAmount;
+			}
+			if (tempyNewSecond != x)
+			{
+				whitePointsSuccesfulStreakAtCurrentRowNew = 0;
+				check = false;
+			}
+			tempyNewSecond = x;
+			cout << "tempyNewSecondAfter: " << tempyNewSecond << endl;
+
+		}
+	}
+	cout << "ok: " << endl;
 	return result;
 }
-
-
-	//Rect bounds;
-	//int maxHeightRoi = 0;
-	//for (int i = 1; i < filteredImage_stats.rows; i++) {
-
-	//	int currentHeightOfRoi = filteredImage_stats.at<int>(i, CC_STAT_HEIGHT);
-	//	cout << "Currentheight: " << currentHeightOfRoi << endl;
-	//	if (currentHeightOfRoi > maxHeightRoi)
-	//	{
-	//		maxHeightRoi = currentHeightOfRoi;
-	//		bounds = getRect(filteredImage, filteredImage_stats, i);
-	//		bounds.x = bounds.x - 100;
-	//		bounds.y = bounds.y - 100;
-	//		bounds.width = bounds.width + 150;
-	//		bounds.height = bounds.height + 150;
-	//		//roi = filteredImage(bounds) == i;
-	//	}
-	//}
-
-	//int widthRrect = bounds.width;
-	//int heightRect = bounds.height;
-	//int x0 = bounds.x;
-	//int y0 = bounds.y;
-	//cout << "x0: " << x0 << endl;
-	//cout << "y0: " << y0 << endl;
-	//cout << "Width: " << widthRrect << endl;
-	//cout << "Height: " << heightRect << endl;
-	//int widthN = x0 + widthRrect;
-	//int heightN = y0 + heightRect;
-	//cout << "WidthN: " << widthN << endl;
-	//cout << "HeightN: " << heightN << endl;
