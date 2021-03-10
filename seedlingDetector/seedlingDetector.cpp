@@ -38,6 +38,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	Mat thresholded_labels, thresholded_stats, thresholded_centroids, thresholded_doubleStats;
 	int count = analyzeParticles(thresholded_dst, thresholded_labels, thresholded_stats, thresholded_centroids, thresholded_doubleStats, ParticleAnalyzer::FOUR_CONNECTED | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES, 20);
 
+	thresholded_dst = thresholded_labels > 0;
 	int topStart = 150;
 	int bottomStart = thresholded_dst.rows - 150;
 	for (int i = 0; i < thresholded_dst.cols; i++) {
