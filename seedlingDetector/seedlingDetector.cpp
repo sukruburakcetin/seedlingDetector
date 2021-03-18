@@ -40,8 +40,8 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	int count = analyzeParticles(thresholded_dst, thresholded_labels, thresholded_stats, thresholded_centroids, thresholded_doubleStats, ParticleAnalyzer::FOUR_CONNECTED, 20);
 
 	thresholded_dst = thresholded_labels > 0;
-	int topStart = 150;
-	int bottomStart = thresholded_dst.rows - 150;
+	int topStart = 150, bottom_margin = 150;
+	int bottomStart = thresholded_dst.rows - bottom_margin;
 	for (int i = 0; i < thresholded_dst.cols; i++) {
 		for (int j = topStart; j < bottomStart; j++) {
 			// You can now access the pixel value with cv::Vec3b
@@ -200,6 +200,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	//cout << "averageWhitePixels: " << averageWhitePixels << endl;
 
+	/*This blocks determine leaf artifact on the seedling*/
 	int avrgWhiteCouplePxCountInCurrentRow = averageWhitePixels / 2;
 	int leafStartPixelRowAmountInBody = 0, bodyToLeafMargin = 10;
 	for (int x = 0; x < seedlingAreaDilated.rows; x++)
@@ -231,6 +232,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 				for (int z = 0; z < seedlingArea.rows; z++)
 				{
 					seedlingArea.at<uchar>(x, z) = 0;
+					//floodFill(filteredImageNew, Point2d(x, z), 127);
 				}
 				check = true;
 				leafStartPixelRowAmountInBody = leafStartPixelRowAmountInBody + 1;
@@ -240,16 +242,17 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 				whitePointsSuccesfulStreakAtCurrentRowNew = 0;
 				check = false;
 			}
-			//cout << "tempyNewSecondBefore: " << tempyNewSecond << endl;
 			tempyNewSecond = x;
-			//cout << "tempyNewSecondAfter: " << tempyNewSecond << endl;
-
 		}
 	}
 
 	cout << "leafStartPixelRowAmountInBody: " << leafStartPixelRowAmountInBody << endl;
 	int seedlingHeight = (seedlingArea.rows + verticalMarginValue) - leafStartPixelRowAmountInBody;
 	cout << "seedlingHeight: " << seedlingHeight << " pixel." << endl;
+
+
+	//floodFill(filteredImageNew, Point2d(389, 522), 127);
+	cout << "asd: " << " pixel." << endl;
 
 	return result;
 }
