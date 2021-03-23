@@ -39,6 +39,9 @@
     <ClCompile Include="FillHoles.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="codeArchive.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ColourDeconvolution.hpp">
@@ -66,6 +69,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FillHoles.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="codeArchive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

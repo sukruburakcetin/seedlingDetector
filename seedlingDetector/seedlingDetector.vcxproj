@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AutoThreshold.cpp" />
+    <ClCompile Include="codeArchive.cpp" />
     <ClCompile Include="ColourDeconvolution.cpp" />
     <ClCompile Include="FillHoles.cpp" />
     <ClCompile Include="Helpers.cpp" />
@@ -154,6 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AutoThreshold.hpp" />
+    <ClInclude Include="codeArchive.h" />
     <ClInclude Include="ColourDeconvolution.hpp" />
     <ClInclude Include="FillHoles.hpp" />
     <ClInclude Include="Helpers.hpp" />
