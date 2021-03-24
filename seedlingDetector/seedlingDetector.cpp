@@ -233,7 +233,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	}
 	cout << "averageWhitePixels: " << averageWhitePixels << endl;
 
-#pragma region previous build that calculates average whitePixel on seedling's body
+#pragma region previous build that calculates average whitePixel on seedling body
 	///*---------------------------------*/
 ///*--------this block calculates average white pixel value by looking down to up and left to right by 10 pixel--------*/
 //int startPoint = seedlingAreaDilated.rows - 1;
