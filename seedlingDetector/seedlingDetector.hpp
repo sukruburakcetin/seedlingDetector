@@ -28,3 +28,5 @@ public:
 };
 
 seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedlingDetectorPreferences& prefs);
+
+//void determineThresholdSeedlingToLeaf(int leftStart2, int bottomStartRect2, int heightSeedling, int currentValue2, bool rowCheckIsDone = false, bool finalWhitePixelRight2 = false, int sumWhitePixelToTheRight2, cv::Mat filteredImageNew, cv::Mat filteredImageNew_3D, int currentValueRight, int currentValueLeft, bool finalWhitePixelLeft, int sumWhitePixelToTheLeft2 = 0, int rowThicknessWhenCollapsed, int nextSeedlingStartPoint, int epsilon, int seedlingTickness);

@@ -14,6 +14,16 @@
 using namespace std;
 using namespace cv;
 
+
+
+void determineThresholdSeedlingToLeaf(int y, int x, int leftStart2, int bottomStartRect2, int& heightSeedling,
+	int currentValue2,
+	bool& rowCheckIsDone, bool finalWhitePixelRight2, int sumWhitePixelToTheRight2,
+	Mat filteredImageNew, Mat filteredImageNew_3D, int currentValueRight,
+	int currentValueLeft, bool finalWhitePixelLeft, int sumWhitePixelToTheLeft2,
+	int& rowThicknessWhenCollapsed, int& currentHeightAtWhitePoint,
+	int seedlingThickness);
+
 seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedlingDetectorPreferences& prefs)
 {
 	seedlingDetectorResult result;
@@ -51,9 +61,11 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	}
 	bitwise_and(thresholded_dst, thresholded_dst_new, filteredImage);
 	Mat filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, roiMask;
-	int count2 = analyzeParticles(filteredImage, filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, ParticleAnalyzer::FOUR_CONNECTED | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES, 400);
-	Mat filteredImageNew = filteredImage_labels > 0;
+	//watershedProcess(filteredImage, filteredImageNew, 41);
 
+	int count2 = analyzeParticles(filteredImage, filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, ParticleAnalyzer::FOUR_CONNECTED | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES, 10000);
+	// 
+	Mat filteredImageNew = filteredImage_labels > 0;
 	//Mat test = Mat::zeros(src.size(), CV_8UC1);
 
 	int value = 0;
@@ -88,7 +100,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		}
 	}
 	/*-----highestIntensityColumnIndex == yukarýdan aþaðýya en yoðun column(vertical line)-----*/
-	cout << "highestIntensityColumnIndex: " << highestIntensityColumnIndex << endl;
+	cout << "highestIntensityColumnIndex(y): " << highestIntensityColumnIndex << endl;
 
 	for (int y = highestIntensityColumnIndex; y < highestIntensityColumnIndex + 1; y++)
 	{
@@ -105,13 +117,18 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	}
 
 	/*------lastWhitePixelInLine == en yoðun column(vertical line)daki taban obje pikseli------*/
-	cout << "lastWhitePixelInLine: " << lastWhitePixelInLine << endl;
+	cout << "lastWhitePixelInLine(x): " << lastWhitePixelInLine << endl;
 
 
-	/*---------------calculates seedlingTickness by searching left and right whitePixels---------------------*/
-	int currentValueLeft = 0, currentValueRight = 0, sumWhitePixelToTheLeft = 0, sumWhitePixelToTheRight = 0, artifactMarginValue = 50;
+	Mat filteredImageNew_3D = Mat::zeros(filteredImageNew.size(), CV_8UC3);
+	cvtColor(filteredImageNew, filteredImageNew_3D, COLOR_GRAY2RGB);
+	circle(filteredImageNew_3D, Point(highestIntensityColumnIndex, lastWhitePixelInLine), 0, Scalar(0, 255, 0), -1);
+
+
+	/*---------------calculates seedlingThickness by searching left and right whitePixels---------------------*/
+	int currentValueLeft = 0, currentValueRight = 0, sumWhitePixelToTheLeft = -1, sumWhitePixelToTheRight = 0, sumWhitePixelToTheLeft2 = -1, sumWhitePixelToTheRight2 = 0, artifactMarginValue = 50;
 	int filteredPointOfHICI = lastWhitePixelInLine - artifactMarginValue;
-	bool finalWhitePixelLeft = false, finalWhitePixelRight = false;
+	bool finalWhitePixelLeft = false, finalWhitePixelRight = false, finalWhitePixelLeft2 = false, finalWhitePixelRight2 = false;;
 	//cout << "filteredImageNew.cols: " << filteredImageNew.cols << endl;
 
 	for (int x = filteredPointOfHICI; x < filteredPointOfHICI + 1; x++)
@@ -131,7 +148,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		}
 	}
 
-	cout << "sumWhitePixelToTheLeft: " << sumWhitePixelToTheLeft << endl;
+	//cout << "sumWhitePixelToTheLeft: " << sumWhitePixelToTheLeft << endl;
 	for (int x = filteredPointOfHICI; x < filteredPointOfHICI + 1; x++)
 	{
 		for (int y = highestIntensityColumnIndex; y < filteredImageNew.cols; y++)
@@ -146,13 +163,13 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 			{
 				finalWhitePixelRight = true;
 			}
-	
+
 		}
 	}
-	cout << "sumWhitePixelToTheRight: " << sumWhitePixelToTheRight << endl;
+	//cout << "sumWhitePixelToTheRight: " << sumWhitePixelToTheRight << endl;
 
-	int seedlingTickness = sumWhitePixelToTheLeft + sumWhitePixelToTheRight;
-	cout << "seedlingTickness: " << seedlingTickness << endl;
+	int seedlingThickness = sumWhitePixelToTheLeft + sumWhitePixelToTheRight;
+	cout << "seedlingThickness(OguzhanHoca): " << seedlingThickness << endl;
 
 	int horizontalMarginValue = 30; // margin that is direct the point left 
 	int verticalMarginValue = 30; // margin that is direct the point top 
@@ -165,39 +182,102 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	bool check = false;
 	Mat seedlingArea, complateSeedlingArea, complateSeedlingAreaBlanked;
 	currentValue = filteredImageNew.at<uchar>(bottomStartRect, leftStart);
-	if (currentValue == 255)
+
+	/*test variables start-----------------------------------------------------*/
+	int currentValue2 = 0;
+	int horizontalMarginValue2 = 2; // margin that is direct the point left 
+	int verticalMarginValue2 = 30; // margin that is direct the point top 
+	int leftStart2 = highestIntensityColumnIndex - horizontalMarginValue2;
+	int bottomStartRect2 = lastWhitePixelInLine - verticalMarginValue2; //
+	int rectWidth2 = horizontalMarginValue2 * 2;
+	int rectWidthAlt2 = rectWidth2 * 8;
+	int rowThicknessWhenCollapsed = 0;
+	int epsilon = 5;
+	currentValue2 = filteredImageNew.at<uchar>(bottomStartRect2, leftStart2);
+	bool rowCheckIsDone = false;
+	int heightSeedlingSum = 0, heightSeedling = 0, nextSeedlingStartPoint = 0, currentHeightAtWhitePoint = 0;
+
+
+	circle(filteredImageNew_3D, Point(leftStart2, bottomStartRect2), 0, Scalar(255, 0, 0), -1);
+
+
+	/*test variables end*/
+
+	/*test body start */
+
+
+	if (currentValue2 == 255) //checks the entry point white or black, it must be black
 	{
-		leftStart = leftStart - horizontalMarginValue;
-		rectWidth = rectWidth * 2;
+		leftStart2 = leftStart2 - horizontalMarginValue2;
+		rectWidth2 = rectWidth2 * 2;
 	}
-	for (int y = leftStart; y < leftStart + 1; y++)
-	{
-		for (int x = bottomStartRect; x > 0; x--)
+
+	while (rowThicknessWhenCollapsed <= (seedlingThickness + epsilon)) {
+		for (int y = leftStart2; y < leftStart2 + 1; y++)
 		{
-			countHeight++;
-
-			//cout << "currenPoint: " << Point(x, y) << endl;
-			//cout << "bottomStartRect: " << bottomStartRect << endl;
-			//filteredImageNew.at<uchar>(x, y) = 255;
-			//test.at<uchar>(y, x) = 255;
-
-			currentValue = filteredImageNew.at<uchar>(x, y);
-			if (currentValue == 255 && rectengleDetected == false)
+			for (int x = bottomStartRect2; x > 0; x--)
 			{
-				//cout << "currentValue: " << currentValue << endl;
-				//cout << "x: " << x << endl;
-				//cout << "y: " << y << endl;
+				heightSeedlingSum++;
+				determineThresholdSeedlingToLeaf(y, x, leftStart2, bottomStartRect2, heightSeedling, currentValue2, rowCheckIsDone,
+					finalWhitePixelLeft2, sumWhitePixelToTheRight2, filteredImageNew, filteredImageNew_3D,
+					currentValueRight, currentValueLeft, finalWhitePixelLeft, sumWhitePixelToTheLeft2,
+					rowThicknessWhenCollapsed, currentHeightAtWhitePoint, seedlingThickness);
 
-				cv::Rect rectSeedling(y, x, rectWidth, countHeight);
-				cv::Rect rectComplateSeedling(y - 200, 0, rectWidthAlt, bottomStartRect);
+				cout << "rowCheckIsDone: " << rowCheckIsDone << endl;
+				cout << "currentHeightAtWhitePoint: " << currentHeightAtWhitePoint << endl;
 
-				seedlingArea = filteredImageNew(rectSeedling);
-				complateSeedlingArea = filteredImageNew(rectComplateSeedling);
-				rectengleDetected = true;
-				//rectangle(test, rect, Scalar(255, 255, 255));
+
+				if (rowCheckIsDone == true)
+				{
+					bottomStartRect2 = bottomStartRect2 - currentHeightAtWhitePoint;
+					leftStart2 = leftStart2 - horizontalMarginValue2;
+					break;
+				}
 			}
 		}
 	}
+
+	cout << "value: " << highestIntensityColumnIndex - leftStart << endl;
+	cv::Rect rectSeedling(leftStart+horizontalMarginValue2, bottomStartRect2, (highestIntensityColumnIndex - leftStart) + seedlingThickness, heightSeedlingSum);
+	//cv::Rect rectComplateSeedling(y - 200, 0, rectWidthAlt, bottomStartRect);
+
+	seedlingArea = filteredImageNew(rectSeedling);
+
+	
+	cout << "heightSeedlingSum: " << heightSeedlingSum << endl;
+	/*test body end */
+	//if (currentValue == 255)
+	//{
+	//	leftStart = leftStart - horizontalMarginValue;
+	//	rectWidth = rectWidth * 2;
+	//}
+
+	//for (int y = leftStart; y < leftStart + 1; y++)
+	//{
+	//	for (int x = bottomStartRect; x > 0; x--)
+	//	{
+	//		countHeight++;
+	//		//cout << "currenPoint: " << Point(x, y) << endl;
+	//		//cout << "bottomStartRect: " << bottomStartRect << endl;
+	//		//filteredImageNew.at<uchar>(x, y) = 255;
+	//		//test.at<uchar>(y, x) = 255;
+	//		currentValue = filteredImageNew.at<uchar>(x, y);
+	//		if (currentValue == 255 && rectengleDetected == false)
+	//		{
+	//			//cout << "currentValue: " << currentValue << endl;
+	//			//cout << "x: " << x << endl;
+	//			//cout << "y: " << y << endl;
+
+	//			cv::Rect rectSeedling(y, x, rectWidth, countHeight);
+	//			cv::Rect rectComplateSeedling(y - 200, 0, rectWidthAlt, bottomStartRect);
+
+	//			seedlingArea = filteredImageNew(rectSeedling);
+	//			complateSeedlingArea = filteredImageNew(rectComplateSeedling);
+	//			rectengleDetected = true;
+	//			//rectangle(test, rect, Scalar(255, 255, 255));
+	//		}
+	//	}
+	//}
 	Mat seedlingAreaEroded, seedlingAreaDilated;
 	morphologyEx(seedlingArea, seedlingAreaEroded, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 3);
 	morphologyEx(seedlingAreaEroded, seedlingAreaDilated, MORPH_DILATE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 3);
@@ -231,7 +311,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 			}
 		}
 	}
-	cout << "averageWhitePixels: " << averageWhitePixels << endl;
+	cout << "averageWhitePixels_CenterMode: " << averageWhitePixels << endl;
 
 #pragma region previous build that calculates average whitePixel on seedling body
 	///*---------------------------------*/
@@ -283,10 +363,8 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		{
 			//cout << "x: " << x << endl;
 			//cout << "y: " << y << endl;
-
 			value = seedlingAreaDilated.at<uchar>(x, y);
 			//cout << "value: " << value << endl;
-
 			tempNextPoint = seedlingAreaDilated.at<uchar>(x, y + 1);
 			if (value == 255 && tempNextPoint == 255) {
 				whitePointsSuccesfulStreakAtCurrentRowNew = whitePointsSuccesfulStreakAtCurrentRowNew + 1;
@@ -297,12 +375,10 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 				//cout << "pointbefore: " << Point(x, y) << endl;
 				//cout << "whitePointsSuccesfulStreakAtCurrentRowNew: " << whitePointsSuccesfulStreakAtCurrentRowNew << endl;
-
 			}
 			else if (whitePointsSuccesfulStreakAtCurrentRowNew >= averageWhitePixels + bodyToLeafMargin && check == false)
 			{
-				cout << "whitePointsSuccesfulStreakAtCurrentRow: " << whitePointsSuccesfulStreakAtCurrentRowNew << endl;
-
+				//cout << "whitePointsSuccesfulStreakAtCurrentRow: " << whitePointsSuccesfulStreakAtCurrentRowNew << endl;
 				for (int z = 0; z < seedlingArea.rows; z++)
 				{
 					seedlingArea.at<uchar>(x, z) = 0;
@@ -320,8 +396,74 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		}
 	}
 	cout << "leafStartPixelRowAmountInBody: " << leafStartPixelRowAmountInBody << endl;
-	int seedlingHeight = (seedlingArea.rows + verticalMarginValue) - leafStartPixelRowAmountInBody;
+	//int seedlingHeight = (seedlingArea.rows + verticalMarginValue) - leafStartPixelRowAmountInBody;
+	int seedlingHeight = heightSeedlingSum + verticalMarginValue;
 	cout << "seedlingHeight: " << seedlingHeight << " pixel." << endl;
 
 	return result;
+}
+
+void determineThresholdSeedlingToLeaf(int y, int x, int leftStart2, int bottomStartRect2, int& heightSeedling,
+	int currentValue2,
+	bool& rowCheckIsDone, bool finalWhitePixelRight2, int sumWhitePixelToTheRight2,
+	Mat filteredImageNew, Mat filteredImageNew_3D, int currentValueRight,
+	int currentValueLeft, bool finalWhitePixelLeft, int sumWhitePixelToTheLeft2,
+	int& rowThicknessWhenCollapsed, int& currentHeightAtWhitePoint,
+	int seedlingThickness)
+{
+	heightSeedling++;
+	rowCheckIsDone = false;
+	//cout << "heightSeedling: " << heightSeedling << endl;
+
+	currentValue2 = filteredImageNew.at<uchar>(x, y);
+
+	if (rowCheckIsDone == false) { // colors the test area to let developer track the code
+		circle(filteredImageNew_3D, Point(y, x), 0, Scalar(255, 0, 0), -1);
+	}
+
+	if (currentValue2 == 255 && rowCheckIsDone == false)
+	{
+		//for right side of the center, calculates white pixels
+		for (int j = x; j < x + 1; j++)
+		{
+			for (int k = y; k < filteredImageNew.cols; k++)
+			{
+				//cout << "pointCollapsed: " << Point(j, k) << endl;
+				//filteredImageNew.at<uchar>(x, y) = 0;
+				currentValueRight = filteredImageNew.at<uchar>(j, k);
+				if (currentValueRight == 255 && finalWhitePixelRight2 == false) {
+					//cout << "pointRightFirst: " << Point(j, k) << endl;
+					sumWhitePixelToTheRight2 = sumWhitePixelToTheRight2 + 1;
+				}
+				else if (currentValueRight == 0)
+				{
+					finalWhitePixelRight2 = true;
+				}
+			}
+		}
+		for (int l = x; l < x + 1; l++)
+		{
+			for (int m = y; m > -1; m--)
+			{
+				//cout << "pointLeft: " << Point(x, y) << endl;
+				//filteredImageNew.at<uchar>(x, y) = 0;
+				currentValueLeft = filteredImageNew.at<uchar>(l, m);
+				if (currentValueLeft == 255 && finalWhitePixelLeft == false) {
+					sumWhitePixelToTheLeft2 = sumWhitePixelToTheLeft2 + 1;
+				}
+				else if (currentValueLeft == 0)
+				{
+					finalWhitePixelLeft = true;
+				}
+			}
+		}
+		rowThicknessWhenCollapsed = sumWhitePixelToTheLeft2 + sumWhitePixelToTheRight2;
+		currentHeightAtWhitePoint = heightSeedling;
+		rowCheckIsDone = true;
+		heightSeedling = 0;
+	}
+
+	//cout << "rowThicknessWhenCollapsed: " << rowThicknessWhenCollapsed << endl;
+	//cout << "currentHeightAtWhitePoint: " << currentHeightAtWhitePoint << endl;
+	//cout << "rowCheckIsDone: " << rowCheckIsDone << endl;
 }
