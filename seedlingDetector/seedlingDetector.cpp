@@ -20,7 +20,7 @@ void determineThresholdSeedlingToLeaf(int y, int x, int leftStart2, int bottomSt
 	int currentValue2,
 	bool& rowCheckIsDone, bool finalWhitePixelRight2, int sumWhitePixelToTheRight2,
 	Mat filteredImageNew, Mat filteredImageNew_3D, int currentValueRight,
-	int currentValueLeft, bool finalWhitePixelLeft, int sumWhitePixelToTheLeft2,
+	int currentValueLeft, bool finalWhitePixelLeft2, int sumWhitePixelToTheLeft2,
 	int& rowThicknessWhenCollapsed, int& currentHeightAtWhitePoint,
 	int seedlingThickness);
 
@@ -128,7 +128,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	/*---------------calculates seedlingThickness by searching left and right whitePixels---------------------*/
 	int currentValueLeft = 0, currentValueRight = 0, sumWhitePixelToTheLeft = -1, sumWhitePixelToTheRight = 0, sumWhitePixelToTheLeft2 = -1, sumWhitePixelToTheRight2 = 0, artifactMarginValue = 50;
 	int filteredPointOfHICI = lastWhitePixelInLine - artifactMarginValue;
-	bool finalWhitePixelLeft = false, finalWhitePixelRight = false, finalWhitePixelLeft2 = false, finalWhitePixelRight2 = false;;
+	bool finalWhitePixelLeft = false, finalWhitePixelRight = false, finalWhitePixelLeft2 = false, finalWhitePixelRight2 = false, isLeftOriented = false, isRightOriented = false;
 	//cout << "filteredImageNew.cols: " << filteredImageNew.cols << endl;
 
 	for (int x = filteredPointOfHICI; x < filteredPointOfHICI + 1; x++)
@@ -171,6 +171,9 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	int seedlingThickness = sumWhitePixelToTheLeft + sumWhitePixelToTheRight;
 	cout << "seedlingThickness(OguzhanHoca): " << seedlingThickness << endl;
 
+
+
+	
 	int horizontalMarginValue = 30; // margin that is direct the point left 
 	int verticalMarginValue = 30; // margin that is direct the point top 
 	int leftStart = highestIntensityColumnIndex - horizontalMarginValue;
@@ -187,18 +190,34 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	int currentValue2 = 0;
 	int horizontalMarginValue2 = 2; // margin that is direct the point left 
 	int verticalMarginValue2 = 30; // margin that is direct the point top 
-	int leftStart2 = highestIntensityColumnIndex - horizontalMarginValue2;
-	int bottomStartRect2 = lastWhitePixelInLine - verticalMarginValue2; //
+
 	int rectWidth2 = horizontalMarginValue2 * 2;
 	int rectWidthAlt2 = rectWidth2 * 8;
 	int rowThicknessWhenCollapsed = 0;
 	int epsilon = 5;
-	currentValue2 = filteredImageNew.at<uchar>(bottomStartRect2, leftStart2);
+	int startSeedlingPoint = 0;
+
+	
 	bool rowCheckIsDone = false;
 	int heightSeedlingSum = 0, heightSeedling = 0, nextSeedlingStartPoint = 0, currentHeightAtWhitePoint = 0;
 
+	int bottomStartRect2 = lastWhitePixelInLine - verticalMarginValue2;
+	
+	if (sumWhitePixelToTheLeft < sumWhitePixelToTheRight)
+	{
+		isLeftOriented = true;
+		startSeedlingPoint = highestIntensityColumnIndex - horizontalMarginValue2;
+	
+	}
 
-	circle(filteredImageNew_3D, Point(leftStart2, bottomStartRect2), 0, Scalar(255, 0, 0), -1);
+	else if (sumWhitePixelToTheRight < sumWhitePixelToTheLeft)
+	{
+		isRightOriented = true;
+		startSeedlingPoint = highestIntensityColumnIndex + horizontalMarginValue2;
+	}
+
+	currentValue2 = filteredImageNew.at<uchar>(bottomStartRect2, startSeedlingPoint);
+	circle(filteredImageNew_3D, Point(startSeedlingPoint, bottomStartRect2), 0, Scalar(255, 0, 0), -1);
 
 
 	/*test variables end*/
@@ -206,31 +225,37 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	/*test body start */
 
 
-	if (currentValue2 == 255) //checks the entry point white or black, it must be black
+	if (currentValue2 == 255 && isLeftOriented == true) //checks the entry point white or black, it must be black
 	{
-		leftStart2 = leftStart2 - horizontalMarginValue2;
+		startSeedlingPoint = startSeedlingPoint - horizontalMarginValue2;
 		rectWidth2 = rectWidth2 * 2;
 	}
 
 	while (rowThicknessWhenCollapsed <= (seedlingThickness + epsilon)) {
-		for (int y = leftStart2; y < leftStart2 + 1; y++)
+		for (int y = startSeedlingPoint; y < startSeedlingPoint + 1; y++)
 		{
 			for (int x = bottomStartRect2; x > 0; x--)
 			{
 				heightSeedlingSum++;
-				determineThresholdSeedlingToLeaf(y, x, leftStart2, bottomStartRect2, heightSeedling, currentValue2, rowCheckIsDone,
-					finalWhitePixelLeft2, sumWhitePixelToTheRight2, filteredImageNew, filteredImageNew_3D,
-					currentValueRight, currentValueLeft, finalWhitePixelLeft, sumWhitePixelToTheLeft2,
+				determineThresholdSeedlingToLeaf(y, x, startSeedlingPoint, bottomStartRect2, heightSeedling, currentValue2, rowCheckIsDone,
+					finalWhitePixelRight2, sumWhitePixelToTheRight2, filteredImageNew, filteredImageNew_3D,
+					currentValueRight, currentValueLeft, finalWhitePixelLeft2, sumWhitePixelToTheLeft2,
 					rowThicknessWhenCollapsed, currentHeightAtWhitePoint, seedlingThickness);
 
 				cout << "rowCheckIsDone: " << rowCheckIsDone << endl;
 				cout << "currentHeightAtWhitePoint: " << currentHeightAtWhitePoint << endl;
 
 
-				if (rowCheckIsDone == true)
+				if (rowCheckIsDone == true && isLeftOriented == true)
 				{
 					bottomStartRect2 = bottomStartRect2 - currentHeightAtWhitePoint;
-					leftStart2 = leftStart2 - horizontalMarginValue2;
+					startSeedlingPoint = startSeedlingPoint - horizontalMarginValue2;
+					break;
+				}
+				if (rowCheckIsDone == true && isRightOriented == true)
+				{
+					bottomStartRect2 = bottomStartRect2 - currentHeightAtWhitePoint;
+					startSeedlingPoint = startSeedlingPoint + horizontalMarginValue2;
 					break;
 				}
 			}
@@ -407,7 +432,7 @@ void determineThresholdSeedlingToLeaf(int y, int x, int leftStart2, int bottomSt
 	int currentValue2,
 	bool& rowCheckIsDone, bool finalWhitePixelRight2, int sumWhitePixelToTheRight2,
 	Mat filteredImageNew, Mat filteredImageNew_3D, int currentValueRight,
-	int currentValueLeft, bool finalWhitePixelLeft, int sumWhitePixelToTheLeft2,
+	int currentValueLeft, bool finalWhitePixelLeft2, int sumWhitePixelToTheLeft2,
 	int& rowThicknessWhenCollapsed, int& currentHeightAtWhitePoint,
 	int seedlingThickness)
 {
@@ -445,15 +470,18 @@ void determineThresholdSeedlingToLeaf(int y, int x, int leftStart2, int bottomSt
 		{
 			for (int m = y; m > -1; m--)
 			{
+				//cout << "pointCollapsed: " << Point(l, m) << endl;
+				//circle(filteredImageNew_3D, Point(l, m), 0, Scalar(0, 255, 0), -1);
+
 				//cout << "pointLeft: " << Point(x, y) << endl;
 				//filteredImageNew.at<uchar>(x, y) = 0;
 				currentValueLeft = filteredImageNew.at<uchar>(l, m);
-				if (currentValueLeft == 255 && finalWhitePixelLeft == false) {
+				if (currentValueLeft == 255 && finalWhitePixelLeft2 == false) {
 					sumWhitePixelToTheLeft2 = sumWhitePixelToTheLeft2 + 1;
 				}
 				else if (currentValueLeft == 0)
 				{
-					finalWhitePixelLeft = true;
+					finalWhitePixelLeft2 = true;
 				}
 			}
 		}
