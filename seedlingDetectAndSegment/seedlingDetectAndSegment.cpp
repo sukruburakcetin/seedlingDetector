@@ -12,7 +12,7 @@ using namespace std;
 
 int main()
 {
-    std::cout << "Seedling Classifier\n";
+    std::cout << "------------------------------- Seedling Classifier ----------------------------------\n";
 
 	string image_path = "C:/test_image_seedling.png";
 
