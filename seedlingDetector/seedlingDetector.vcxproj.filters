@@ -71,8 +71,5 @@
     <ClInclude Include="FillHoles.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="codeArchive.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

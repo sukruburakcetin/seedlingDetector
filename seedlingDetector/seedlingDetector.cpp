@@ -7,17 +7,18 @@
 #include "ParticleAnalyzer.hpp"
 #include "RankFilters.hpp"
 #include "FillHoles.hpp"
+#include "WatershedCustom.hpp"
 
 using namespace std;
 using namespace cv;
 
 
 auto determineThresholdSeedlingToLeaf(int y, int x, int& heightSeedling,
-                                      int currentValue2,
-                                      bool& rowCheckIsDone, bool finalWhitePixelRight2, int sumWhitePixelToTheRight2,
-                                      Mat filteredImageNew, Mat filteredImageNew_3D, int currentValueRight,
-                                      int currentValueLeft, bool finalWhitePixelLeft2, int sumWhitePixelToTheLeft2,
-                                      int& rowThicknessWhenCollapsed, int& currentHeightAtWhitePoint) -> void;
+	int currentPixelValueAtCoordinate,
+	bool& rowCheckIsDone, bool finalWhitePixelRight2, int sumWhitePixelToTheRight2,
+	Mat filteredImageNew, Mat filteredImageNew_3D, int currentValueRight,
+	int currentValueLeft, bool finalWhitePixelLeft2, int sumWhitePixelToTheLeft2,
+	int& rowThicknessWhenCollapsed, int& currentHeightAtWhitePoint) -> void;
 
 seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedlingDetectorPreferences& prefs)
 {
@@ -36,7 +37,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	Mat thresholded_dst = srcGausF.clone();
 	Mat thresholded_dst_new = Mat::zeros(src.size(), CV_8UC1);
-	autoThreshold(thresholded_dst, ThresholdMethod::Default);
+	autoThreshold(thresholded_dst, ThresholdMethod::Otsu);
 	thresholded_dst = ~thresholded_dst;
 	//watershedProcess(thresholded_dst, thresholded_dst, 41);
 	fillHoles(thresholded_dst);
@@ -45,7 +46,9 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	int count = analyzeParticles(thresholded_dst, thresholded_labels, thresholded_stats, thresholded_centroids, thresholded_doubleStats, ParticleAnalyzer::FOUR_CONNECTED, 20);
 
 	thresholded_dst = thresholded_labels > 0;
-	int topStart = 150, bottom_margin = 150;
+	//crop
+	//int topStart = 150, bottom_margin = 150;
+	int topStart = 1, bottom_margin = 70;
 	int bottomStart = thresholded_dst.rows - bottom_margin;
 	for (int i = 0; i < thresholded_dst.cols; i++) {
 		for (int j = topStart; j < bottomStart; j++) {
@@ -55,25 +58,36 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		}
 	}
 	bitwise_and(thresholded_dst, thresholded_dst_new, filteredImage);
-	Mat filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, roiMask;
+	Mat filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, roiMask, filteredImageNewEroded, filteredImageNewDilated;
 	//watershedProcess(filteredImage, filteredImageNew, 41);
 
-	int count2 = analyzeParticles(filteredImage, filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, ParticleAnalyzer::FOUR_CONNECTED | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES, 10000);
-	// 
+	analyzeParticles(filteredImage, filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, ParticleAnalyzer::FOUR_CONNECTED | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES, 10000);
+
 	Mat filteredImageNew = filteredImage_labels > 0;
+
+	morphologyEx(filteredImageNew, filteredImageNewEroded, MORPH_ERODE, getStructuringElement(CV_SHAPE_RECT, Size(3, 3)), Point(-1, -1), 2);
+	morphologyEx(filteredImageNewEroded, filteredImageNewDilated, MORPH_DILATE, getStructuringElement(CV_SHAPE_RECT, Size(3, 3)), Point(-1, -1), 2);
+
+	filteredImageNew = filteredImageNewDilated.clone();
+
 	//Mat test = Mat::zeros(src.size(), CV_8UC1);
 
-	//
-	//filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/test1.png");
+	/*****************testing pic for artifact cleared env start***************************/
+
+	//filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/goddammit.png");
 	//cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);
+
+	/*****************testing pic for artifact cleared env end***************************/
+
+
 
 	int value = 0;
 	int whitePixelCounter = 0;
-	int tempy = 0, tempyNew = 0, tempyNewSecond = 0;
+	int tempy = 0, tempyNewSecond = 0;
 	int maxIntensity = 0;
 	int highestIntensityColumnIndex = 0;
-	int lastWhitePixelInLine = 0;
-	int countHeight = 0;
+	int lastWhitePixelInHighestIntensityLine = 0;
+
 	for (int y = 0; y < filteredImageNew.cols; y++)
 	{
 		for (int x = 0; x < filteredImageNew.rows; x++)
@@ -107,7 +121,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		{
 			value = filteredImageNew.at<uchar>(x, y);
 			if (value == 255) {
-				lastWhitePixelInLine = x;
+				lastWhitePixelInHighestIntensityLine = x;
 				//cout << "whitePixelCounter: " << whitePixelCounter << endl;
 			}
 			//			test.at<uchar>(x, y) = 255;
@@ -116,21 +130,29 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	}
 
 	/*------lastWhitePixelInLine == en yoðun column(vertical line)daki taban obje pikseli------*/
-	cout << "lastWhitePixelInLine(x): " << lastWhitePixelInLine << endl;
+	cout << "lastWhitePixelInLine(x): " << lastWhitePixelInHighestIntensityLine << endl;
 
 
 	Mat filteredImageNew_3D = Mat::zeros(filteredImageNew.size(), CV_8UC3);
 	cvtColor(filteredImageNew, filteredImageNew_3D, COLOR_GRAY2RGB);
-	circle(filteredImageNew_3D, Point(highestIntensityColumnIndex, lastWhitePixelInLine), 0, Scalar(0, 255, 0), -1);
+	// dye most intensive column's bottom point
+	circle(filteredImageNew_3D, Point(highestIntensityColumnIndex, lastWhitePixelInHighestIntensityLine), 0, Scalar(0, 255, 0), -1);
 
 
 	/*---------------calculates seedlingThickness by searching left and right whitePixels---------------------*/
-	int currentValueLeft = 0, currentValueRight = 0, sumWhitePixelToTheLeft = -1, sumWhitePixelToTheRight = 0, sumWhitePixelToTheLeft2 = -1, sumWhitePixelToTheRight2 = 0, artifactMarginValue = 50;
-	int filteredPointOfHICI = lastWhitePixelInLine - artifactMarginValue;
-	bool finalWhitePixelLeft = false, finalWhitePixelRight = false, finalWhitePixelLeft2 = false, finalWhitePixelRight2 = false, isLeftOriented = false, isRightOriented = false;
-	//cout << "filteredImageNew.cols: " << filteredImageNew.cols << endl;
+	int currentValueLeft = 0, currentValueRight = 0, sumWhitePixelToTheLeft = -1, sumWhitePixelToTheRight = 0, sumWhitePixelToTheLeft2 = -1, sumWhitePixelToTheRight2 = 0;
 
-	for (int x = filteredPointOfHICI; x < filteredPointOfHICI + 1; x++)
+	int horizontalMarginValueForBottomStart = 2; // margin that is direct the point left 
+	int verticalMarginValueForBottomStartPoint = 100; // margin that is direct the point top 
+
+	// move the point upward a little bit to avoid artifacts that are mostly located
+	// bottomStartPoint(filteredPointOfHICI) = filtered Point of Highest Intensity Column Index
+	int bottomStartPoint = lastWhitePixelInHighestIntensityLine - verticalMarginValueForBottomStartPoint;
+	circle(filteredImageNew_3D, Point(highestIntensityColumnIndex, bottomStartPoint), 0, Scalar(255, 0, 0), -1);
+
+	bool finalWhitePixelLeft = false, finalWhitePixelRight = false, finalWhitePixelLeft2 = false, finalWhitePixelRight2 = false, isLeftOriented = false, isRightOriented = false;
+
+	for (int x = bottomStartPoint; x < bottomStartPoint + 1; x++)
 	{
 		for (int y = highestIntensityColumnIndex; y > 0; y--)
 		{
@@ -148,7 +170,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	}
 
 	//cout << "sumWhitePixelToTheLeft: " << sumWhitePixelToTheLeft << endl;
-	for (int x = filteredPointOfHICI; x < filteredPointOfHICI + 1; x++)
+	for (int x = bottomStartPoint; x < bottomStartPoint + 1; x++)
 	{
 		for (int y = highestIntensityColumnIndex; y < filteredImageNew.cols; y++)
 		{
@@ -162,7 +184,6 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 			{
 				finalWhitePixelRight = true;
 			}
-
 		}
 	}
 	//cout << "sumWhitePixelToTheRight: " << sumWhitePixelToTheRight << endl;
@@ -172,89 +193,83 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 
 	int horizontalMarginValue = 30; // margin that is direct the point left 
-	int verticalMarginValue = 30; // margin that is direct the point top 
 	int leftStart = highestIntensityColumnIndex - horizontalMarginValue;
-	int bottomStartRect = lastWhitePixelInLine - verticalMarginValue; // from bottom highintense row to row0
-	int rectWidth = horizontalMarginValue * 2;
-	int rectWidthAlt = rectWidth * 8;
-	int currentValue = 0, whitePointsAtCurrentRow = 0, sumWhitePixels = 0;
-	bool rectengleDetected = false;
+
+
 	bool check = false;
 	Mat seedlingArea, complateSeedlingArea, complateSeedlingAreaBlanked;
-	currentValue = filteredImageNew.at<uchar>(bottomStartRect, leftStart);
 
-	/*test variables start-----------------------------------------------------*/
-	int currentValue2 = 0;
-	int horizontalMarginValue2 = 2; // margin that is direct the point left 
-	int verticalMarginValue2 = 30; // margin that is direct the point top 
 
-	int rectWidth2 = horizontalMarginValue2 * 2;
-	int rectWidthAlt2 = rectWidth2 * 8;
+	int definedRectWidth = horizontalMarginValueForBottomStart * 2;
 	int rowThicknessWhenCollapsed = 0;
 	int epsilon = 5;
-	int startSeedlingPoint = 0;
+	
 
 
 	bool rowCheckIsDone = false;
-	int heightSeedlingSum = 0, heightSeedling = 0, nextSeedlingStartPoint = 0, currentHeightAtWhitePoint = 0;
+	int heightSeedlingSum = 0, heightSeedling = 0, currentHeightAtWhitePoint = 0;
 
-	int bottomStartRect2 = lastWhitePixelInLine - verticalMarginValue2;
+	int startSeedlingPoint = highestIntensityColumnIndex;
+
+	int currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(bottomStartPoint, highestIntensityColumnIndex);
+	cout << "currentPixelValueAtCoordinateBefore: " << currentPixelValueAtCoordinate << endl;
+
+	//circle(filteredImageNew_3D, Point(startSeedlingPoint, bottomStartPoint), 0, Scalar(255, 0, 255), -1);
 
 	if (sumWhitePixelToTheLeft < sumWhitePixelToTheRight)
 	{
 		isLeftOriented = true;
-		startSeedlingPoint = highestIntensityColumnIndex - horizontalMarginValue2;
-
 	}
 
 	else if (sumWhitePixelToTheRight < sumWhitePixelToTheLeft)
 	{
 		isRightOriented = true;
-		startSeedlingPoint = highestIntensityColumnIndex + horizontalMarginValue2;
 	}
 
-	currentValue2 = filteredImageNew.at<uchar>(bottomStartRect2, startSeedlingPoint);
-	circle(filteredImageNew_3D, Point(startSeedlingPoint, bottomStartRect2), 0, Scalar(255, 0, 0), -1);
+	do {
 
+		if (isLeftOriented == true) //checks the entry point white or black, it must be black
+		{
+			startSeedlingPoint = startSeedlingPoint - horizontalMarginValueForBottomStart;
+			cout << "startSeedlingPoint: " << startSeedlingPoint << endl;
+			currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(bottomStartPoint, startSeedlingPoint);
+			cout << "currentPixelValueAtCoordinate: " << currentPixelValueAtCoordinate << endl;
+			circle(filteredImageNew_3D, Point(startSeedlingPoint, bottomStartPoint), 0, Scalar(0, 255, 0), -1);
+		}
 
-	/*test variables end*/
+		if (isRightOriented == true) //checks the entry point white or black, it must be black
+		{
+			startSeedlingPoint = highestIntensityColumnIndex + horizontalMarginValueForBottomStart;
+			currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(bottomStartPoint, startSeedlingPoint);
+			circle(filteredImageNew_3D, Point(startSeedlingPoint, bottomStartPoint), 0, Scalar(0, 255, 0), -1);
+		}
+	} while (currentPixelValueAtCoordinate != 0);
 
-	/*test body start */
+	circle(filteredImageNew_3D, Point(startSeedlingPoint, bottomStartPoint), 0, Scalar(255, 0, 255), -1);
 
-
-	if (currentValue2 == 255 && isLeftOriented == true) //checks the entry point white or black, it must be black
-	{
-		startSeedlingPoint = startSeedlingPoint - horizontalMarginValue2;
-		rectWidth2 = rectWidth2 * 2;
-	}
-
-	if (currentValue2 == 255 && isRightOriented == true) //checks the entry point white or black, it must be black
-	{
-		startSeedlingPoint = startSeedlingPoint + horizontalMarginValue2;
-		rectWidth2 = rectWidth2 * 2;
-	}
+	definedRectWidth = definedRectWidth * 2;
 
 	while (rowThicknessWhenCollapsed <= (seedlingThickness + epsilon)) {
 		for (int y = startSeedlingPoint; y < startSeedlingPoint + 1; y++)
 		{
-			for (int x = bottomStartRect2; x > 0; x--)
+			for (int x = bottomStartPoint; x > 0; x--)
 			{
 				heightSeedlingSum++;
-				determineThresholdSeedlingToLeaf(y, x, heightSeedling, currentValue2, rowCheckIsDone,
+				determineThresholdSeedlingToLeaf(y, x, heightSeedling, currentPixelValueAtCoordinate, rowCheckIsDone,
 					finalWhitePixelRight2, sumWhitePixelToTheRight2, filteredImageNew, filteredImageNew_3D,
 					currentValueRight, currentValueLeft, finalWhitePixelLeft2, sumWhitePixelToTheLeft2,
 					rowThicknessWhenCollapsed, currentHeightAtWhitePoint);
 
 				if (rowCheckIsDone == true)
 				{
-					bottomStartRect2 = bottomStartRect2 - currentHeightAtWhitePoint;
+					bottomStartPoint = bottomStartPoint - currentHeightAtWhitePoint;
 					if (isLeftOriented == true) {
-						startSeedlingPoint = startSeedlingPoint - horizontalMarginValue2; // if the seedling is aligned left
+						startSeedlingPoint = startSeedlingPoint - horizontalMarginValueForBottomStart; // if the seedling is aligned left
 						y = startSeedlingPoint;
 					}
 					else if (isRightOriented == true)
 					{
-						startSeedlingPoint = startSeedlingPoint + horizontalMarginValue2; // if the seedling is aligned right
+						startSeedlingPoint = startSeedlingPoint + horizontalMarginValueForBottomStart; // if the seedling is aligned right
 						y = startSeedlingPoint;
 					}
 					break;
@@ -262,25 +277,101 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 			}
 		}
 	}
+	int leftStartPixelPoint = 0, currentPixelValueAtCoordinateRight = 0, currentPixelValueAtCoordinateLeft = 0;
 
-	//cout << "value: " << highestIntensityColumnIndex - leftStart << endl;
-	cv::Rect rectSeedling(leftStart + horizontalMarginValue2, bottomStartRect2, (highestIntensityColumnIndex - leftStart) + seedlingThickness * 2, heightSeedlingSum + verticalMarginValue);
-	//cv::Rect rectComplateSeedling(y - 200, 0, rectWidthAlt, bottomStartRect);
+	if (isLeftOriented == true)
+		leftStartPixelPoint = startSeedlingPoint + horizontalMarginValueForBottomStart;
+	else if (isRightOriented == true)
+		leftStartPixelPoint = startSeedlingPoint - horizontalMarginValueForBottomStart;
+
+
+	for (int y = leftStartPixelPoint; y < leftStartPixelPoint + 1; y++)
+	{
+		for (int x = bottomStartPoint; x > 0; x--)
+		{
+			currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x, y);
+			//rowCheckIsDone = false;
+
+
+			// colors the test area to let developer track the code
+			circle(filteredImageNew_3D, Point(y, x), 0, Scalar(255, 0, 255), -1);
+
+
+			if (currentPixelValueAtCoordinate == 0)
+			{
+				currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x, y + 1);
+
+				if (currentPixelValueAtCoordinate == 0) {
+
+					//for forwarding to the left from the current collapsed pixel
+					for (int l = x; l < x + 1; l++)
+					{
+						for (int m = y; m > -1; m--)
+						{
+							/*					cout << "x: " << l << endl;
+												cout << "y: " << m << endl;*/
+
+							circle(filteredImageNew_3D, Point(m, l), 0, Scalar(0, 0, 255), -1);
+
+							currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(l, m - 1);
+
+							if (currentPixelValueAtCoordinate == 0)
+							{
+								for (int o = y; o < y + 1; o++)
+								{
+									for (int p = x; p > -1; p--)
+									{
+										circle(filteredImageNew_3D, Point(o, p), 0, Scalar(255, 255, 0), -1); /*/ burada kaldým*/
+									}
+								}
+							}
+							//currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(m, l);
+						}
+					}
+
+					////for forwarding to the left from the current collapsed pixel
+					//for (int j = x; j < x + 1; j++)
+					//{
+					//	for (int k = y; k < filteredImageNew.cols; k++)
+					//	{
+
+					//	}
+					//}
+				}
+
+			}
+		}
+
+	}
+
+
+	cout << "startSeedlingPoint(y-end): " << leftStartPixelPoint << endl;
+	cout << "bottomStartPoint(x-end): " << bottomStartPoint << endl;
+
+
+
+
+
+
+
+
+
+
+	//determine and crop seedling_area in matrix
+	cv::Rect rectSeedling(leftStart + horizontalMarginValueForBottomStart, bottomStartPoint, (highestIntensityColumnIndex - leftStart) + seedlingThickness * 2, heightSeedlingSum + verticalMarginValueForBottomStartPoint);
 
 	seedlingArea = filteredImageNew(rectSeedling);
-	
+
 	cout << "heightSeedlingSum: " << heightSeedlingSum << endl;
-	/*test body end */
+
 
 	Mat seedlingAreaEroded, seedlingAreaDilated;
 	morphologyEx(seedlingArea, seedlingAreaEroded, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 3);
 	morphologyEx(seedlingAreaEroded, seedlingAreaDilated, MORPH_DILATE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 3);
 
-	int startLeft = seedlingAreaDilated.cols;
-	int startAlternate = seedlingAreaDilated.rows - 1;
-	int tempNextPoint = 0, rowIsCounted = 0, averageWhitePixels = 0;
-	bool rowIsCountedCheck = false;
-	int whitePointsSuccesfulStreakAtCurrentRow = 0, whitePointsSuccesfulStreakAtCurrentRowNew = 0, whitePixelsCurrentRow = 0, reminder = 0;
+	int tempNextPoint = 0, averageWhitePixels = 0;
+	int whitePointsSuccesfulStreakAtCurrentRowNew = 0;
+
 	//cout << "startLeft: " << startLeft << endl;
 	//cout << "startAlternate: " << startAlternate << endl;
 
@@ -307,57 +398,14 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	}
 	cout << "averageWhitePixels_CenterMode: " << averageWhitePixels << endl;
 
-
-	/*This blocks determine leaf artifact on the seedling*/
-	int leafStartPixelRowAmountInBody = 0, bodyToLeafMargin = 5;
-	for (int x = 0; x < seedlingAreaDilated.rows; x++)
-	{
-		for (int y = 0; y < seedlingAreaDilated.cols; y++)
-		{
-			//cout << "x: " << x << endl;
-			//cout << "y: " << y << endl;
-			value = seedlingAreaDilated.at<uchar>(x, y);
-			//cout << "value: " << value << endl;
-			tempNextPoint = seedlingAreaDilated.at<uchar>(x, y + 1);
-			if (value == 255 && tempNextPoint == 255) {
-				whitePointsSuccesfulStreakAtCurrentRowNew = whitePointsSuccesfulStreakAtCurrentRowNew + 1;
-				/*seedlingAreaDilated.at<uchar>(x, y) = 0;*/
-				//cout << "point: " << Point(x, y) << endl;
-				//seedlingArea.at<uchar>(x, y) = 0;
-				//cout << "whitePointsSuccesfulStreakAtCurrentRow: " << whitePointsSuccesfulStreakAtCurrentRowNew << endl;
-
-				//cout << "pointbefore: " << Point(x, y) << endl;
-				//cout << "whitePointsSuccesfulStreakAtCurrentRowNew: " << whitePointsSuccesfulStreakAtCurrentRowNew << endl;
-			}
-			else if (whitePointsSuccesfulStreakAtCurrentRowNew >= averageWhitePixels + bodyToLeafMargin && check == false)
-			{
-				//cout << "whitePointsSuccesfulStreakAtCurrentRow: " << whitePointsSuccesfulStreakAtCurrentRowNew << endl;
-				for (int z = 0; z < seedlingArea.rows; z++)
-				{
-					seedlingArea.at<uchar>(x, z) = 0;
-					//floodFill(filteredImageNew, Point2d(x, z), 127);
-				}
-				check = true;
-				leafStartPixelRowAmountInBody = leafStartPixelRowAmountInBody + 1;
-			}
-			else if (tempyNewSecond != x)
-			{
-				whitePointsSuccesfulStreakAtCurrentRowNew = 0;
-				check = false;
-			}
-			tempyNewSecond = x;
-		}
-	}
-	//cout << "leafStartPixelRowAmountInBody: " << leafStartPixelRowAmountInBody << endl;
-	//int seedlingHeight = (seedlingArea.rows + verticalMarginValue) - leafStartPixelRowAmountInBody;
-	int seedlingHeight = heightSeedlingSum + verticalMarginValue;
+	int seedlingHeight = heightSeedlingSum + verticalMarginValueForBottomStartPoint;
 	cout << "seedlingHeight: " << seedlingHeight << " pixel." << endl;
 
 	return result;
 }
 
 void determineThresholdSeedlingToLeaf(int y, int x, int& heightSeedling,
-	int currentValue2,
+	int currentPixelValueAtCoordinate,
 	bool& rowCheckIsDone, bool finalWhitePixelRight2, int sumWhitePixelToTheRight2,
 	Mat filteredImageNew, Mat filteredImageNew_3D, int currentValueRight,
 	int currentValueLeft, bool finalWhitePixelLeft2, int sumWhitePixelToTheLeft2,
@@ -369,13 +417,13 @@ void determineThresholdSeedlingToLeaf(int y, int x, int& heightSeedling,
 	rowCheckIsDone = false;
 	//cout << "heightSeedling: " << heightSeedling << endl;
 
-	currentValue2 = filteredImageNew.at<uchar>(x, y);
+	currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x, y);
 
 	if (rowCheckIsDone == false) { // colors the test area to let developer track the code
 		circle(filteredImageNew_3D, Point(y, x), 0, Scalar(255, 0, 0), -1);
 	}
 
-	if (currentValue2 == 255 && rowCheckIsDone == false)
+	if (currentPixelValueAtCoordinate == 255 && rowCheckIsDone == false)
 	{
 		//for right side of the center, calculates white pixels
 		for (int j = x; j < x + 1; j++)

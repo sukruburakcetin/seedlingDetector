@@ -71,3 +71,53 @@
 	//cout << "rowIsCounted: " << rowIsCounted << endl;
 	//findNonZero(seedlingAreaDilated, whitee_pixels);
 	//cout << "Cloud all white pixels: " << whitee_pixels.size() << endl;
+
+
+
+
+
+/*This blocks determine leaf artifact on the seedling starts*/
+//int leafStartPixelRowAmountInBody = 0, bodyToLeafMargin = 5;
+//for (int x = 0; x < seedlingAreaDilated.rows; x++)
+//{
+//	for (int y = 0; y < seedlingAreaDilated.cols; y++)
+//	{
+//		//cout << "x: " << x << endl;
+//		//cout << "y: " << y << endl;
+//		value = seedlingAreaDilated.at<uchar>(x, y);
+//		//cout << "value: " << value << endl;
+//		tempNextPoint = seedlingAreaDilated.at<uchar>(x, y + 1);
+//		if (value == 255 && tempNextPoint == 255) {
+//			whitePointsSuccesfulStreakAtCurrentRowNew = whitePointsSuccesfulStreakAtCurrentRowNew + 1;
+//			/*seedlingAreaDilated.at<uchar>(x, y) = 0;*/
+//			//cout << "point: " << Point(x, y) << endl;
+//			//seedlingArea.at<uchar>(x, y) = 0;
+//			//cout << "whitePointsSuccesfulStreakAtCurrentRow: " << whitePointsSuccesfulStreakAtCurrentRowNew << endl;
+//
+//			//cout << "pointbefore: " << Point(x, y) << endl;
+//			//cout << "whitePointsSuccesfulStreakAtCurrentRowNew: " << whitePointsSuccesfulStreakAtCurrentRowNew << endl;
+//		}
+//		else if (whitePointsSuccesfulStreakAtCurrentRowNew >= averageWhitePixels + bodyToLeafMargin && check == false)
+//		{
+//			//cout << "whitePointsSuccesfulStreakAtCurrentRow: " << whitePointsSuccesfulStreakAtCurrentRowNew << endl;
+//			for (int z = 0; z < seedlingArea.rows; z++)
+//			{
+//				seedlingArea.at<uchar>(x, z) = 0;
+//				//floodFill(filteredImageNew, Point2d(x, z), 127);
+//			}
+//			check = true;
+//			leafStartPixelRowAmountInBody = leafStartPixelRowAmountInBody + 1;
+//		}
+//		else if (tempyNewSecond != x)
+//		{
+//			whitePointsSuccesfulStreakAtCurrentRowNew = 0;
+//			check = false;
+//		}
+//		tempyNewSecond = x;
+//	}
+//}
+////cout << "leafStartPixelRowAmountInBody: " << leafStartPixelRowAmountInBody << endl;
+////int seedlingHeight = (seedlingArea.rows + verticalMarginValue) - leafStartPixelRowAmountInBody;
+///
+/*This blocks determine leaf artifact on the seedling ends*/
+///

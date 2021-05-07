@@ -155,7 +155,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AutoThreshold.hpp" />
-    <ClInclude Include="codeArchive.h" />
     <ClInclude Include="ColourDeconvolution.hpp" />
     <ClInclude Include="FillHoles.hpp" />
     <ClInclude Include="Helpers.hpp" />

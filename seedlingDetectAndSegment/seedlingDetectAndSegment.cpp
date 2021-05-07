@@ -14,7 +14,8 @@ int main()
 {
     std::cout << "------------------------------- Seedling Classifier ----------------------------------\n";
 
-	string image_path = "C:/test_image_seedling.png";
+	//string image_path = "C:/test_image_seedling.png";
+	string image_path = "C:/IMG_3891.png";
 
 	Mat src = imread(image_path, IMREAD_COLOR);
 	Mat dst;
