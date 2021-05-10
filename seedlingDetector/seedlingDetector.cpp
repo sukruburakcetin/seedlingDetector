@@ -48,7 +48,9 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	thresholded_dst = thresholded_labels > 0;
 	//crop
 	//int topStart = 150, bottom_margin = 150;
-	int topStart = 1, bottom_margin = 70;
+
+	//70 value for new image template
+	int topStart = 1, bottom_margin = 150;
 	int bottomStart = thresholded_dst.rows - bottom_margin;
 	for (int i = 0; i < thresholded_dst.cols; i++) {
 		for (int j = topStart; j < bottomStart; j++) {
@@ -74,8 +76,9 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	/*****************testing pic for artifact cleared env start***************************/
 
-	//filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/goddammit.png");
-	//cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);
+	//filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/asd.png");
+	filteredImageNew = imread("C:/Users/Burak/Desktop/asd.png");
+	cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);
 
 	/*****************testing pic for artifact cleared env end***************************/
 
@@ -145,7 +148,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	int currentValueLeft = 0, currentValueRight = 0, sumWhitePixelToTheLeft = -1, sumWhitePixelToTheRight = 0, sumWhitePixelToTheLeft2 = -1, sumWhitePixelToTheRight2 = 0;
 
 	int horizontalMarginValueForBottomStart = 2; // margin that is direct the point left 
-	int verticalMarginValueForBottomStartPoint = 100; // margin that is direct the point top 
+	int verticalMarginValueForBottomStartPoint = 30; // margin that is direct the point top 
 
 	// move the point upward a little bit to avoid artifacts that are mostly located
 	// bottomStartPoint(filteredPointOfHICI) = filtered Point of Highest Intensity Column Index
@@ -205,8 +208,6 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	int definedRectWidth = horizontalMarginValueForBottomStart * 2;
 	int rowThicknessWhenCollapsed = 0;
 	int epsilon = 5;
-	
-
 
 	bool rowCheckIsDone = false;
 	int heightSeedlingSum = 0, heightSeedling = 0, currentHeightAtWhitePoint = 0;
@@ -214,7 +215,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	int startSeedlingPoint = highestIntensityColumnIndex;
 
 	int currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(bottomStartPoint, highestIntensityColumnIndex);
-	cout << "currentPixelValueAtCoordinateBefore: " << currentPixelValueAtCoordinate << endl;
+	//cout << "currentPixelValueAtCoordinateBefore: " << currentPixelValueAtCoordinate << endl;
 
 	//circle(filteredImageNew_3D, Point(startSeedlingPoint, bottomStartPoint), 0, Scalar(255, 0, 255), -1);
 
@@ -233,9 +234,9 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		if (isLeftOriented == true) //checks the entry point white or black, it must be black
 		{
 			startSeedlingPoint = startSeedlingPoint - horizontalMarginValueForBottomStart;
-			cout << "startSeedlingPoint: " << startSeedlingPoint << endl;
+			//cout << "startSeedlingPoint: " << startSeedlingPoint << endl;
 			currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(bottomStartPoint, startSeedlingPoint);
-			cout << "currentPixelValueAtCoordinate: " << currentPixelValueAtCoordinate << endl;
+			//cout << "currentPixelValueAtCoordinate: " << currentPixelValueAtCoordinate << endl;
 			circle(filteredImageNew_3D, Point(startSeedlingPoint, bottomStartPoint), 0, Scalar(0, 255, 0), -1);
 		}
 
@@ -286,14 +287,13 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	else if (isRightOriented == true)
 		leftStartPixelPoint = startSeedlingPoint - horizontalMarginValueForBottomStart;
 
-
+	int countCurrent = 0;
 	for (int y = leftStartPixelPoint; y < leftStartPixelPoint + 1; y++)
 	{
 		for (int x = bottomStartPoint; x > 0; x--)
 		{
 			currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x, y);
 			//rowCheckIsDone = false;
-
 
 			// colors the test area to let developer track the code
 			circle(filteredImageNew_3D, Point(y, x), 0, Scalar(255, 0, 255), -1);
@@ -316,36 +316,62 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 							circle(filteredImageNew_3D, Point(m, l), 0, Scalar(0, 0, 255), -1);
 							circle(filteredImageNew_clone, Point(m, l), 0, Scalar(255), -1);
 
-
+							// this gets the next pixel at the current spesific pixel in order to calculate if it is collapsed the corner of the object to move forward, looks the next left pixel
 							currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(l, m - 1);
-
+							//countCurrent = countCurrent + 1;
 							if (currentPixelValueAtCoordinate == 0)
 							{
-								
-								Moments m = moments(filteredImageNew_clone, false);
-								Point p1(m.m10 / m.m00, m.m01 / m.m00);
+								//get the center pixel of the line in order to jump through vertically
+								Moments z = moments(filteredImageNew_clone, false);
+								Point p1(z.m10 / z.m00, z.m01 / z.m00);
 								morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
 
-
-								//cout << Mat(p1) << endl;
 								//circle(filteredImageNew_clone, p1, 0, Scalar(0, 255, 0), -1);
-								
-								cout << "p1.y: " << p1.y << endl;
-								cout << "p1.x: " << p1.x << endl;
+
+								/*cout << "p1.y: " << p1.y << endl;
+								cout << "p1.x: " << p1.x << endl;*/
 								for (int o = p1.x; o < p1.x + 1; o++)
 								{
 									for (int p = p1.y; p > -1; p--)
 									{
-										circle(filteredImageNew_3D, Point(o, p), 0, Scalar(255), -1);
+										//BGR is normal format when using scalar
+										circle(filteredImageNew_3D, Point(o, p), 0, Scalar(255, 0, 0), -1);
 
-										cout << "points: " << Point(o, p) << endl;
+										//cout << "points: " << Point(o, p) << endl;
 
-										currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(p-1, o);
-										cout << "currentPixelValueAtCoordinate: " << currentPixelValueAtCoordinate << endl;
+										//p-1 looks the next top pixel at the spesific point
+										currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(p - 1, o);
+
+										//cout << "currentPixelValueAtCoordinate: " << currentPixelValueAtCoordinate << endl;
 
 										if (currentPixelValueAtCoordinate == 0)
 										{
-											cout << "pause: " << endl;
+											for (int a = p; a < p + 1; a++)
+											{
+												for (int b = o; b > -1; b--)
+												{
+													cout << "points: " << Point(a, b) << endl;
+													//countCurrent = countCurrent + 1;
+													//if (countCurrent == 2) {
+
+
+													//	Rect ccomp;
+													//	cout << "points: " << Point(a, b) << endl;
+													//	floodFill(filteredImageNew_3D, Point(b, a), Scalar(155, 255, 55), &ccomp, Scalar(20, 20, 20), Scalar(20, 20, 20));
+													//}
+
+													//circle(filteredImageNew_3D, Point(b, a), 0, Scalar(0, 0, 255), -1);
+													currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(a, b);
+													//countCurrent = countCurrent + 1;
+													if (currentPixelValueAtCoordinate == 0)
+													{
+														cout << "points: " << Point(a, b) << endl;
+
+
+													}
+
+												}
+											}
 										}
 									}
 								}
