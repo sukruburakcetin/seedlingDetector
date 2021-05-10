@@ -134,6 +134,8 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 
 	Mat filteredImageNew_3D = Mat::zeros(filteredImageNew.size(), CV_8UC3);
+	Mat filteredImageNew_clone = Mat::zeros(filteredImageNew.size(), CV_8UC1);
+
 	cvtColor(filteredImageNew, filteredImageNew_3D, COLOR_GRAY2RGB);
 	// dye most intensive column's bottom point
 	circle(filteredImageNew_3D, Point(highestIntensityColumnIndex, lastWhitePixelInHighestIntensityLine), 0, Scalar(0, 255, 0), -1);
@@ -312,16 +314,39 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 												cout << "y: " << m << endl;*/
 
 							circle(filteredImageNew_3D, Point(m, l), 0, Scalar(0, 0, 255), -1);
+							circle(filteredImageNew_clone, Point(m, l), 0, Scalar(255), -1);
+
 
 							currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(l, m - 1);
 
 							if (currentPixelValueAtCoordinate == 0)
 							{
-								for (int o = y; o < y + 1; o++)
+								
+								Moments m = moments(filteredImageNew_clone, false);
+								Point p1(m.m10 / m.m00, m.m01 / m.m00);
+								morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
+
+
+								//cout << Mat(p1) << endl;
+								//circle(filteredImageNew_clone, p1, 0, Scalar(0, 255, 0), -1);
+								
+								cout << "p1.y: " << p1.y << endl;
+								cout << "p1.x: " << p1.x << endl;
+								for (int o = p1.x; o < p1.x + 1; o++)
 								{
-									for (int p = x; p > -1; p--)
+									for (int p = p1.y; p > -1; p--)
 									{
-										circle(filteredImageNew_3D, Point(o, p), 0, Scalar(255, 255, 0), -1); /*/ burada kaldým*/
+										circle(filteredImageNew_3D, Point(o, p), 0, Scalar(255), -1);
+
+										cout << "points: " << Point(o, p) << endl;
+
+										currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(p-1, o);
+										cout << "currentPixelValueAtCoordinate: " << currentPixelValueAtCoordinate << endl;
+
+										if (currentPixelValueAtCoordinate == 0)
+										{
+											cout << "pause: " << endl;
+										}
 									}
 								}
 							}
