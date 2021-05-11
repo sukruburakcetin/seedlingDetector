@@ -50,7 +50,9 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	//int topStart = 150, bottom_margin = 150;
 
 	//70 value for new image template
-	int topStart = 1, bottom_margin = 150;
+	int topStart = 1, bottom_margin = 70;
+
+	//int topStart = 1, bottom_margin = 150;
 	int bottomStart = thresholded_dst.rows - bottom_margin;
 	for (int i = 0; i < thresholded_dst.cols; i++) {
 		for (int j = topStart; j < bottomStart; j++) {
@@ -77,8 +79,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	/*****************testing pic for artifact cleared env start***************************/
 
 	//filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/asd.png");
-	filteredImageNew = imread("C:/Users/Burak/Desktop/asd.png");
-	cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);
+	//cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);
 
 	/*****************testing pic for artifact cleared env end***************************/
 
@@ -351,22 +352,52 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 												for (int b = o; b > -1; b--)
 												{
 													cout << "points: " << Point(a, b) << endl;
-													//countCurrent = countCurrent + 1;
-													//if (countCurrent == 2) {
+											/*		countCurrent = countCurrent + 1;
+													if (countCurrent == 2) {
 
 
-													//	Rect ccomp;
-													//	cout << "points: " << Point(a, b) << endl;
-													//	floodFill(filteredImageNew_3D, Point(b, a), Scalar(155, 255, 55), &ccomp, Scalar(20, 20, 20), Scalar(20, 20, 20));
-													//}
+														Rect ccomp;
+														cout << "points: " << Point(a, b) << endl;
+														floodFill(filteredImageNew_3D, Point(576, 169), Scalar(155, 255, 55), &ccomp, Scalar(20, 20, 20), Scalar(20, 20, 20));
+													}*/
 
-													//circle(filteredImageNew_3D, Point(b, a), 0, Scalar(0, 0, 255), -1);
-													currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(a, b);
+													circle(filteredImageNew_3D, Point(b, a), 0, Scalar(0, 0, 255), -1);
+													circle(filteredImageNew_clone, Point(b, a), 0, Scalar(255), -1);
+													currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(a, b - 1);
+
 													//countCurrent = countCurrent + 1;
 													if (currentPixelValueAtCoordinate == 0)
 													{
-														cout << "points: " << Point(a, b) << endl;
 
+														int lineLenght = countNonZero(filteredImageNew_clone);
+														Moments z = moments(filteredImageNew_clone, false);
+														Point p1(z.m10 / z.m00, z.m01 / z.m00);
+														//p1.y is actually X point on the coordinate system
+														cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+
+														currentPixelValueAtCoordinate = filteredImageNew.at<uchar>((p1.y) - 1, p1.x);
+														cout << "currentPixelValueAtCoordinate1: " << currentPixelValueAtCoordinate << endl;
+
+														morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
+														if(currentPixelValueAtCoordinate !=0){
+															for (int g = p1.x; g < p1.x + 1; g++)
+															{
+																for (int h = p1.y; h > -1; h--)
+																{
+																	circle(filteredImageNew_3D, Point(g, h), 0, Scalar(0, 255, 0), -1);
+																	currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(h - 1, g);
+																	if (currentPixelValueAtCoordinate == 0)
+																	{
+																		cout << "points: " << Point(a, b) << endl;
+
+																	}
+
+
+
+																}
+															}
+														}
+												/*		else if(currentPixelValueAtCoordinate == 0 & )*/
 
 													}
 
