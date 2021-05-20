@@ -48,11 +48,8 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	thresholded_dst = thresholded_labels > 0;
 	//crop
 	int topStart = 150, bottom_margin = 150;
+	//int topStart = 1, bottom_margin = 70; //70 value for new image template
 
-	//70 value for new image template
-	//int topStart = 1, bottom_margin = 70;
-
-	//int topStart = 1, bottom_margin = 150;
 	int bottomStart = thresholded_dst.rows - bottom_margin;
 	for (int i = 0; i < thresholded_dst.cols; i++) {
 		for (int j = topStart; j < bottomStart; j++) {
@@ -282,12 +279,49 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		}
 	}
 	int leftStartPixelPoint = 0, currentPixelValueAtCoordinateRight = 0, currentPixelValueAtCoordinateLeft = 0;
-
-	if (isLeftOriented == true)
+	Mat filterRect;
+	if (isLeftOriented == true){
 		leftStartPixelPoint = startSeedlingPoint + horizontalMarginValueForBottomStart;
-	else if (isRightOriented == true)
-		leftStartPixelPoint = startSeedlingPoint - horizontalMarginValueForBottomStart;
+		Rect filterRegion(leftStartPixelPoint-(100+seedlingThickness), bottomStartPoint-(100+seedlingThickness),100+seedlingThickness, 100+ seedlingThickness);
+		filterRect = filteredImageNew(filterRegion);
 
+	}
+	else if (isRightOriented == true) {
+		leftStartPixelPoint = startSeedlingPoint - horizontalMarginValueForBottomStart;
+		Rect filterRegion(leftStartPixelPoint-100, bottomStartPoint-100, 100, 100);
+		filterRect = filteredImageNew(filterRegion);
+	}
+
+	cout << "statusRight: " << isRightOriented << endl;
+	cout << "statusLeft: " << isLeftOriented << endl;
+
+#pragma region find contours and draw circle around
+	vector<vector<cv::Point>> contours;
+	vector<Vec4i> hierarchy;
+
+	findContours(filterRect, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, cv::Point());
+
+	Mat f5 = filterRect.clone();
+	vector<vector<Point> > contours_poly(contours.size());
+	vector<Rect> boundRect(contours.size());
+	vector<Point2f>centers(contours.size());
+	vector<float>radius(contours.size());
+	for (size_t i = 0; i < contours.size(); i++)
+	{
+		approxPolyDP(contours[i], contours_poly[i], 3, true);
+		boundRect[i] = boundingRect(contours_poly[i]);
+		minEnclosingCircle(contours_poly[i], centers[i], radius[i]);
+	}
+	Mat drawing = Mat::zeros(f5.size(), CV_8UC1);
+	for (size_t i = 0; i < contours.size(); i++)
+	{
+		//drawContours(drawing, contours_poly, (int)i, 255);
+		//rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), 255, 1);
+		circle(drawing, centers[i], (int)radius[i], 255, 1);
+	}
+
+	contours.clear(); hierarchy.clear();
+#pragma endregion
 
 	//start points for leaf height calculation are here
 	int countCurrent = 0;
