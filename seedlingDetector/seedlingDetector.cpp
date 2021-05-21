@@ -47,8 +47,8 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	thresholded_dst = thresholded_labels > 0;
 	//crop
-	int topStart = 150, bottom_margin = 150;
-	//int topStart = 1, bottom_margin = 70; //70 value for new image template
+	//int topStart = 150, bottom_margin = 150;
+	int topStart = 1, bottom_margin = 70; //70 value for new image template
 
 	int bottomStart = thresholded_dst.rows - bottom_margin;
 	for (int i = 0; i < thresholded_dst.cols; i++) {
@@ -75,8 +75,8 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	/*****************testing pic for artifact cleared env start***************************/
 
-	filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/asd.png");
-	cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);
+	//filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/asd.png");
+	//cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);
 
 	/*****************testing pic for artifact cleared env end***************************/
 
@@ -295,33 +295,48 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	cout << "statusRight: " << isRightOriented << endl;
 	cout << "statusLeft: " << isLeftOriented << endl;
 
-#pragma region find contours and draw circle around
-	vector<vector<cv::Point>> contours;
-	vector<Vec4i> hierarchy;
+//#pragma region find contours and draw circle around
+//	vector<vector<cv::Point>> contours;
+//	vector<Vec4i> hierarchy;
+//	filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/dikey.png");
+//	cvtColor(filteredImageNew, filterRect, COLOR_RGB2GRAY);
+//	findContours(filterRect, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, cv::Point());
+//
+//	Mat f5 = filterRect.clone();
+//
+//	
+//	vector<vector<Point> > contours_poly(contours.size());
+//	vector<Rect> boundRect(contours.size());
+//	vector<Point2f>centers(contours.size());
+//	vector<float>radius(contours.size());
+//	for (size_t i = 0; i < contours.size(); i++)
+//	{
+//		approxPolyDP(contours[i], contours_poly[i], 3, true);
+//		boundRect[i] = boundingRect(contours_poly[i]);
+//		minEnclosingCircle(contours_poly[i], centers[i], radius[i]);
+//	}
+//	Mat drawing = Mat::zeros(f5.size(), CV_8UC1);
+//	Mat drawingEroded;
+//	for (size_t i = 0; i < contours.size(); i++)
+//	{
+//		//drawContours(drawing, contours_poly, (int)i, 255);
+//		//rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), 255, 1);
+//		circle(drawing, centers[i], (int)radius[i], 255, 1);
+//	}
+//
+//	contours.clear(); hierarchy.clear();
+//#pragma endregion
+//
+//	
+//	morphologyEx(drawing, drawingEroded, MORPH_DILATE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(2, 2)), Point(-1, -1), 1);
+//
+//	Mat contours_labels, contours_stats, contours_centroids, contours_doubleStats;
+//	//analyzeParticles(f5, contours_labels, contours_stats, contours_centroids, contours_doubleStats, ParticleAnalyzer::FOUR_CONNECTED, 20);
+//	analyzeParticles(drawingEroded, contours_labels, contours_stats, contours_centroids, contours_doubleStats, ParticleAnalyzer::FOUR_CONNECTED, 20);
+//	cout << "LeftPixel: " << contours_stats.at<int>(1, CC_STAT_LEFT) << endl;
+//	cout << "TopPixel: " << contours_stats.at<int>(1, CC_STAT_TOP) << endl;
 
-	findContours(filterRect, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, cv::Point());
-
-	Mat f5 = filterRect.clone();
-	vector<vector<Point> > contours_poly(contours.size());
-	vector<Rect> boundRect(contours.size());
-	vector<Point2f>centers(contours.size());
-	vector<float>radius(contours.size());
-	for (size_t i = 0; i < contours.size(); i++)
-	{
-		approxPolyDP(contours[i], contours_poly[i], 3, true);
-		boundRect[i] = boundingRect(contours_poly[i]);
-		minEnclosingCircle(contours_poly[i], centers[i], radius[i]);
-	}
-	Mat drawing = Mat::zeros(f5.size(), CV_8UC1);
-	for (size_t i = 0; i < contours.size(); i++)
-	{
-		//drawContours(drawing, contours_poly, (int)i, 255);
-		//rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), 255, 1);
-		circle(drawing, centers[i], (int)radius[i], 255, 1);
-	}
-
-	contours.clear(); hierarchy.clear();
-#pragma endregion
+	Mat filteredImageNewFilled = filteredImageNew.clone();
 
 	//start points for leaf height calculation are here
 	int countCurrent = 0;
@@ -513,7 +528,18 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																}
 															}
 														}
-												/*		else if(currentPixelValueAtCoordinate == 0 & )*/
+														else if (currentPixelValueAtCoordinate == 0) {
+
+															for (int g = p1.x; g < p1.x + 1; g++)
+															{
+																for (int h = p1.y; h > -1; h--)
+																{
+																	circle(filteredImageNewFilled, Point(g, h), 0, Scalar(255), -1);
+
+																}
+															}
+
+														}
 
 													}
 
