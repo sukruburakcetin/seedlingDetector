@@ -297,7 +297,6 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	cout << "statusRight: " << isRightOriented << endl;
 	cout << "statusLeft: " << isLeftOriented << endl;
-
 //#pragma region find contours and draw circle around
 //	vector<vector<cv::Point>> contours;
 //	vector<Vec4i> hierarchy;
@@ -580,6 +579,183 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 																										if (currentPixelValueAtCoordinate == 0) {
 																											cout << "pause: " << endl;
+
+																											for (int t = c; t < c + 1; c++)
+																											{
+																												for (int s = f; s < filteredImageNew.rows; s++)
+																												{
+																													//cout << "points: " << Point(t, s) << endl;
+																													circle(filteredImageNewFilled, Point(t, s), 0, Scalar(255, 0, 255), -1);
+																													circle(filteredImageNew_clone, Point(t, s), 0, Scalar(255), -1);
+																													currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(s + 1, t);
+
+																													if (currentPixelValueAtCoordinate == 0) {
+																														cout << "pause: " << endl;
+																														int lineLenght = countNonZero(filteredImageNew_clone);
+																														Moments z = moments(filteredImageNew_clone, false);
+																														Point p1(z.m10 / z.m00, z.m01 / z.m00);
+																														//p1.y is actually X point on the coordinate system
+																														cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																														morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
+																														for (int f = p1.y; f < p1.y + 1; f++)
+																														{
+																															for (int c = p1.x; c > -1; c--)
+																															{
+
+																																//BGR is normal format when using scalar
+																																circle(filteredImageNewFilled, Point(c, f), 0, Scalar(255, 0, 0), -1);
+																																currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(f, c - 1);
+
+
+																																if (currentPixelValueAtCoordinate == 0) {
+																																	cout << "pause: " << endl;
+																																	for (int t = c; t < c + 1; c++)
+																																	{
+																																		for (int s = f; s < filteredImageNew.rows; s++)
+																																		{
+																																			//cout << "points: " << Point(t, s) << endl;
+																																			circle(filteredImageNewFilled, Point(t, s), 0, Scalar(255, 0, 255), -1);
+																																			circle(filteredImageNew_clone, Point(t, s), 0, Scalar(255), -1);
+																																			currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(s + 1, t);
+
+																																			if (currentPixelValueAtCoordinate == 0) {
+																																				cout << "pause: " << endl;
+																																				int lineLenght = countNonZero(filteredImageNew_clone);
+																																				Moments z = moments(filteredImageNew_clone, false);
+																																				Point p1(z.m10 / z.m00, z.m01 / z.m00);
+																																				//p1.y is actually X point on the coordinate system
+																																				cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																																				morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
+																																				for (int f = p1.y; f < p1.y + 1; f++)
+																																				{
+																																					for (int c = p1.x; c > -1; c--)
+																																					{
+
+																																						//BGR is normal format when using scalar
+																																						circle(filteredImageNewFilled, Point(c, f), 0, Scalar(255, 0, 0), -1);
+																																						currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(f, c - 1);
+
+
+																																						if (currentPixelValueAtCoordinate == 0) {
+																																							cout << "pause: " << endl;
+																																							for (int t = c; t < c + 1; c++)
+																																							{
+																																								for (int s = f; s < filteredImageNew.rows; s++)
+																																								{
+																																									//cout << "points: " << Point(t, s) << endl;
+																																									circle(filteredImageNewFilled, Point(t, s), 0, Scalar(255, 0, 255), -1);
+																																									circle(filteredImageNew_clone, Point(t, s), 0, Scalar(255), -1);
+																																									currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(s + 1, t);
+
+																																									if (currentPixelValueAtCoordinate == 0) {
+
+																																										cout << "pause: " << endl;
+																																										int lineLenght = countNonZero(filteredImageNew_clone);
+																																										Moments z = moments(filteredImageNew_clone, false);
+																																										Point p1(z.m10 / z.m00, z.m01 / z.m00);
+																																										//p1.y is actually X point on the coordinate system
+																																										cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																																										morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
+																																										for (int f = p1.y; f < p1.y + 1; f++)
+																																										{
+																																											for (int c = p1.x; c > -1; c--)
+																																											{
+																																												circle(filteredImageNewFilled, Point(c, f), 0, Scalar(255, 0, 0), -1);
+																																												currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(f, c - 1);
+																																												Point2i test1(c, f);
+																																												//cout << "test1: " << test1.x << endl;
+
+
+																																												if (currentPixelValueAtCoordinate == 0) {
+																																													for (int t = c; t < c + 1; c++)
+																																													{
+																																														for (int s = f; s < filteredImageNew.rows; s++)
+																																														{
+																																															//cout << "points: " << Point(t, s) << endl;
+																																															circle(filteredImageNewFilled, Point(t, s), 0, Scalar(0, 0, 255), -1);
+																																															circle(filteredImageNew_clone, Point(t, s), 0, Scalar(255), -1);
+																																															currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(s + 1, t);
+																																															Point2i test2(t, s);
+																																															cout << "test1.x: " << test1.x << endl;
+																																															cout << "test2.x: " << test2.x << endl;
+																																															cout << "test1.y: " << test1.y << endl;
+																																															cout << "test2.y: " << test2.y << endl;
+
+																																															if (currentPixelValueAtCoordinate == 0 )
+																																															{
+																																																cout << "pause: " << endl;
+
+																																																if (test1.x == test2.x)
+																																																{
+																																																	cout << "pause: " << endl;
+																																																	int lineLenght = countNonZero(filteredImageNew_clone);
+																																																	Moments z = moments(filteredImageNew_clone, false);
+																																																	Point p1(z.m10 / z.m00, z.m01 / z.m00);
+																																																	//p1.y is actually X point on the coordinate system
+																																																	cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																																																	morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
+																																																	for (int f = p1.y; f < p1.y + 1; f++)
+																																																	{
+																																																		for (int c = p1.x; c < filteredImageNew.cols; c++)
+																																																		{
+																																																			circle(filteredImageNewFilled, Point(c, f), 0, Scalar(255, 0, 0), -1);
+																																																			circle(filteredImageNew_clone, Point(c, f), 0, Scalar(255), -1);
+
+																																																			currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(f, c + 1);
+																																																			Point2i test1(c, f);
+																																																			//cout << "test1: " << test1.x << endl;
+
+
+																																																			if (currentPixelValueAtCoordinate == 0) {
+																																																				cout << "pause: " << endl;
+																																																				int lineLenght = countNonZero(filteredImageNew_clone);
+																																																				Moments z = moments(filteredImageNew_clone, false);
+																																																				Point p1(z.m10 / z.m00, z.m01 / z.m00);
+																																																				//p1.y is actually X point on the coordinate system
+																																																				cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																																																				morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
+																																																				for (int f = p1.y; f < p1.y + 1; f++)
+																																																				{
+																																																					for (int c = p1.x; c < filteredImageNew.rows; c++)
+																																																					{
+																																																						circle(filteredImageNewFilled, Point(c, f), 0, Scalar(255, 255, 0), -1);
+																																																						currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(f, c - 1);
+
+																																																						if (currentPixelValueAtCoordinate == 0) {
+																																																							cout << "pause: " << endl;
+
+																																																						}
+
+																																																					}
+																																																				}
+																																																			}
+																																																		}
+																																																	}
+																																																}
+
+																																															}
+
+																																														}
+																																													}
+																																												}
+																																											}
+																																										}
+																																									}
+																																								}
+																																							}
+
+																																						}
+																																					}
+																																				}
+																																			}
+																																		}
+																																	}
+																																}
+																															}
+																														}
+																													}
+																												}
+																											}
 																										}
 																									}
 																								}
