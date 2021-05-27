@@ -75,8 +75,8 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	/*****************testing pic for artifact cleared env start***************************/
 
-	//filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/asd.png");
-	//cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);
+	/*filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/asd.png");
+	cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);*/
 
 	/*****************testing pic for artifact cleared env end***************************/
 
@@ -714,16 +714,31 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																																																				//p1.y is actually X point on the coordinate system
 																																																				cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 																																																				morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
-																																																				for (int f = p1.y; f < p1.y + 1; f++)
+																																																				for (int f = p1.x; f < p1.x + 1; f++)//hatalý
 																																																				{
-																																																					for (int c = p1.x; c < filteredImageNew.rows; c++)
+																																																					for (int c = p1.y; c < filteredImageNew.rows; c++)
 																																																					{
-																																																						circle(filteredImageNewFilled, Point(c, f), 0, Scalar(255, 255, 0), -1);
-																																																						currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(f, c - 1);
+																																																						circle(filteredImageNewFilled, Point(f, c), 0, Scalar(255, 255, 0), -1);
+																																																						currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(c, f - 1);
 
 																																																						if (currentPixelValueAtCoordinate == 0) {
 																																																							cout << "pause: " << endl;
+																																																							for (int t = c; t < f + 1; f++)
+																																																							{
+																																																								for (int s = f; s < filteredImageNew.cols; s++)
+																																																								{
+																																																									//cout << "points: " << Point(t, s) << endl;
+																																																									circle(filteredImageNewFilled, Point(s, t), 0, Scalar(0, 0, 255), -1);
+																																																									circle(filteredImageNew_clone, Point(s, t), 0, Scalar(255), -1);
+																																																									currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(t , s + 1);
 
+																																																									if (currentPixelValueAtCoordinate == 0) {
+
+																																																										cout << "pause: " << endl;
+
+																																																									}
+																																																								}
+																																																							}
 																																																						}
 
 																																																					}
