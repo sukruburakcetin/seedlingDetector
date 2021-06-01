@@ -735,6 +735,55 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																																																									if (currentPixelValueAtCoordinate == 0) {
 
 																																																										cout << "pause: " << endl;
+																																																										cout << "pause: " << endl;
+																																																										int lineLenght = countNonZero(filteredImageNew_clone);
+																																																										Moments z = moments(filteredImageNew_clone, false);
+																																																										Point p1(z.m10 / z.m00, z.m01 / z.m00);
+																																																										//p1.y is actually X point on the coordinate system
+																																																										cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																																																										morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
+																																																										for (int f = p1.x; f < p1.x + 1; f++)//hatalý
+																																																										{
+																																																											for (int c = p1.y; c < filteredImageNew.rows; c++)
+																																																											{
+																																																												circle(filteredImageNewFilled, Point(f, c), 0, Scalar(255, 255, 0), -1);
+																																																												currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(c+1, f);
+																																																												if (currentPixelValueAtCoordinate == 0) {
+																																																													for (int t = c; t < f + 1; f++)
+																																																													{
+																																																														for (int s = f; s < filteredImageNew.cols; s++)
+																																																														{
+																																																															//cout << "points: " << Point(t, s) << endl;
+																																																															circle(filteredImageNewFilled, Point(s, t), 0, Scalar(0, 0, 255), -1);
+																																																															circle(filteredImageNew_clone, Point(s, t), 0, Scalar(255), -1);
+																																																															currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(t, s + 1);
+																																																															if (currentPixelValueAtCoordinate == 0) {
+																																																																int lineLenght = countNonZero(filteredImageNew_clone);
+																																																																Moments z = moments(filteredImageNew_clone, false);
+																																																																Point p1(z.m10 / z.m00, z.m01 / z.m00);
+																																																																//p1.y is actually X point on the coordinate system
+																																																																cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																																																																morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
+																																																																for (int f = p1.x; f < p1.x + 1; f++)//hatalý
+																																																																{
+																																																																	for (int c = p1.y; c < filteredImageNew.rows; c++)
+																																																																	{
+																																																																		circle(filteredImageNewFilled, Point(f, c), 0, Scalar(255, 255, 0), -1);
+																																																																		currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(c + 1, f);
+																																																																		if (currentPixelValueAtCoordinate == 0) {
+																																																																			cout << "end for now: " << endl;
+																																																																		}
+																																																																	}
+																																																																}
+																																																															}
+
+																																																														}
+																																																													}
+
+																																																												}
+
+																																																											}
+																																																										}
 
 																																																									}
 																																																								}
