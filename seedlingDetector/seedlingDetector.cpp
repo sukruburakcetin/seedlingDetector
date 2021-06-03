@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <iostream>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -65,6 +66,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	analyzeParticles(filteredImage, filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, ParticleAnalyzer::FOUR_CONNECTED | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES, 10000);
 
 	Mat filteredImageNew = filteredImage_labels > 0;
+	Mat filteredImageLabelsClone = filteredImageNew.clone();
 
 	morphologyEx(filteredImageNew, filteredImageNewEroded, MORPH_ERODE, getStructuringElement(CV_SHAPE_RECT, Size(3, 3)), Point(-1, -1), 2);
 	morphologyEx(filteredImageNewEroded, filteredImageNewDilated, MORPH_DILATE, getStructuringElement(CV_SHAPE_RECT, Size(3, 3)), Point(-1, -1), 2);
@@ -297,47 +299,82 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	cout << "statusRight: " << isRightOriented << endl;
 	cout << "statusLeft: " << isLeftOriented << endl;
-//#pragma region find contours and draw circle around
-//	vector<vector<cv::Point>> contours;
-//	vector<Vec4i> hierarchy;
-//	filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/dikey.png");
-//	cvtColor(filteredImageNew, filterRect, COLOR_RGB2GRAY);
-//	findContours(filterRect, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, cv::Point());
-//
-//	Mat f5 = filterRect.clone();
-//
-//	
-//	vector<vector<Point> > contours_poly(contours.size());
-//	vector<Rect> boundRect(contours.size());
-//	vector<Point2f>centers(contours.size());
-//	vector<float>radius(contours.size());
-//	for (size_t i = 0; i < contours.size(); i++)
-//	{
-//		approxPolyDP(contours[i], contours_poly[i], 3, true);
-//		boundRect[i] = boundingRect(contours_poly[i]);
-//		minEnclosingCircle(contours_poly[i], centers[i], radius[i]);
-//	}
-//	Mat drawing = Mat::zeros(f5.size(), CV_8UC1);
-//	Mat drawingEroded;
-//	for (size_t i = 0; i < contours.size(); i++)
-//	{
-//		//drawContours(drawing, contours_poly, (int)i, 255);
-//		//rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), 255, 1);
-//		circle(drawing, centers[i], (int)radius[i], 255, 1);
-//	}
-//
-//	contours.clear(); hierarchy.clear();
-//#pragma endregion
-//
-//	
-//	morphologyEx(drawing, drawingEroded, MORPH_DILATE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(2, 2)), Point(-1, -1), 1);
-//
-//	Mat contours_labels, contours_stats, contours_centroids, contours_doubleStats;
-//	//analyzeParticles(f5, contours_labels, contours_stats, contours_centroids, contours_doubleStats, ParticleAnalyzer::FOUR_CONNECTED, 20);
-//	analyzeParticles(drawingEroded, contours_labels, contours_stats, contours_centroids, contours_doubleStats, ParticleAnalyzer::FOUR_CONNECTED, 20);
-//	cout << "LeftPixel: " << contours_stats.at<int>(1, CC_STAT_LEFT) << endl;
-//	cout << "TopPixel: " << contours_stats.at<int>(1, CC_STAT_TOP) << endl;
+#pragma region find contours and draw circle around
+	vector<vector<cv::Point>> contours;
+	vector<Vec4i> hierarchy;
+	filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/yatay.png");
+	cvtColor(filteredImageNew, filterRect, COLOR_RGB2GRAY);
+	findContours(filterRect, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, cv::Point());
 
+	Mat f5 = filterRect.clone();
+	
+	vector<vector<Point> > contours_poly(contours.size());
+	vector<Rect> boundRect(contours.size());
+	vector<Point2f>centers(contours.size());
+	vector<float>radius(contours.size());
+	for (size_t i = 0; i < contours.size(); i++)
+	{
+		approxPolyDP(contours[i], contours_poly[i], 3, true);
+		boundRect[i] = boundingRect(contours_poly[i]);
+		minEnclosingCircle(contours_poly[i], centers[i], radius[i]);
+	}
+	Mat drawing = Mat::zeros(f5.size(), CV_8UC1);
+	Mat drawingEroded;
+	for (size_t i = 0; i < contours.size(); i++)
+	{
+		//drawContours(drawing, contours_poly, (int)i, 255);
+		//rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), 255, 1);
+		circle(drawing, centers[i], (int)radius[i], 255, 1);
+	}
+	
+	contours.clear(); hierarchy.clear();
+	
+	morphologyEx(drawing, drawingEroded, MORPH_DILATE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(2, 2)), Point(-1, -1), 1);
+	int enBuyukAlan = 0, index = 0;
+	Mat contours_labels, contours_stats, contours_centroids, contours_doubleStats;
+	int countParticles = analyzeParticles(drawingEroded, contours_labels, contours_stats, contours_centroids, contours_doubleStats, ParticleAnalyzer::FOUR_CONNECTED);
+
+	for (int j = 1; j < countParticles; j++) {
+		int areaCurrent =  contours_stats.at<int>(j, CC_STAT_AREA);
+	
+		cout << "areaCurrent: " << areaCurrent << endl;
+		cout << "index: " << index << endl;
+
+		if (areaCurrent > enBuyukAlan) {
+			cout << "girdi" << endl;
+			enBuyukAlan = areaCurrent;
+			index = j;
+
+		}
+	}
+
+	Mat cellRoi = getRoiMask(contours_labels, contours_stats, index);
+	cv::Mat output, channelsConcatenated, channelsConcatenatedDilated;
+	flip(cellRoi, output, 0);
+	vconcat(cellRoi, output, channelsConcatenated);
+	morphologyEx(channelsConcatenated, channelsConcatenatedDilated, MORPH_DILATE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 2);
+	Mat contours_labels1, contours_stats1, contours_centroids1, contours_doubleStats1;
+
+	vector<vector<Point>> objectContours;
+	vector<Vec4i> objectHierarchy;
+
+	findContours(channelsConcatenatedDilated, objectContours, objectHierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, Point(0, 0));
+
+	vector<vector<Point>> objectContoursPoly(objectContours.size());
+
+	for (int i = 0; i < objectContours.size(); i++) {
+		//int areaCurrent =  contours_stats.at<int>(i, CC_STAT_AREA);
+		approxPolyDP(Mat(objectContours[i]), objectContoursPoly[i], 3, true);
+		double areaCurrent = contourArea(Mat(objectContoursPoly[i]), false);
+		cout << "areaCurrent: " << areaCurrent << endl;
+
+		double perimeterOfDirection = arcLength(Mat(objectContoursPoly[i]), true);
+		cout << "perimeterOfDirection: " << perimeterOfDirection << endl;
+
+		double circularityOfDirection = (4 * M_PI * areaCurrent) / pow(perimeterOfDirection, 2.0);
+		cout << "circularityOfDirection: " << circularityOfDirection << endl;
+	}
+#pragma endregion
 
 	//start points for leaf height calculation are here
 	int countCurrent = 0;
@@ -742,7 +779,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																																																										//p1.y is actually X point on the coordinate system
 																																																										cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 																																																										morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
-																																																										for (int f = p1.x; f < p1.x + 1; f++)//hatalý
+																																																										for (int f = p1.x; f < p1.x + 1; f++)
 																																																										{
 																																																											for (int c = p1.y; c < filteredImageNew.rows; c++)
 																																																											{
@@ -764,14 +801,23 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																																																																//p1.y is actually X point on the coordinate system
 																																																																cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 																																																																morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
-																																																																for (int f = p1.x; f < p1.x + 1; f++)//hatalý
+																																																																for (int f = p1.x; f < p1.x + 1; f++)
 																																																																{
 																																																																	for (int c = p1.y; c < filteredImageNew.rows; c++)
 																																																																	{
-																																																																		circle(filteredImageNewFilled, Point(f, c), 0, Scalar(255, 255, 0), -1);
+																																																																		circle(filteredImageNewFilled, Point(f, c), 0, Scalar(0, 255, 255), -1);
 																																																																		currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(c + 1, f);
+																																																																		cout << "points: " << Point(c,f) << endl;
+
 																																																																		if (currentPixelValueAtCoordinate == 0) {
+
+																																																																			int leafLenght = sqrt((c - bottomStartPoint) * (c - bottomStartPoint) + (f- leftStartPixelPoint) * (f - leftStartPixelPoint));
+
+																																																																			cout << "leafLenght: " << leafLenght << endl;
+
 																																																																			cout << "end for now: " << endl;
+
+
 																																																																		}
 																																																																	}
 																																																																}
