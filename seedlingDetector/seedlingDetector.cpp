@@ -364,13 +364,13 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	double circularityLimit = 0.500000;
 	bool upward = false, downward = false; 
 	if (circularityOfDirection > circularityLimit){
-		cout << "direction is upward! " << endl;
-		upward = true;
+		cout << "direction is downward! " << endl;
+		downward = true;
 	}
 	if (circularityOfDirection <= circularityLimit)
 	{
-		cout << "direction is downward! " << endl;
-		downward = true;
+		cout << "direction is upward! " << endl;
+		upward = true;
 	}
 #pragma endregion
 
