@@ -362,8 +362,8 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	double circularityOfDirection = (4 * M_PI * areaCurrent) / pow(perimeterOfDirection, 2.0);
 	cout << "circularityOfDirection: " << circularityOfDirection << endl;
 	double circularityLimit = 0.500000;
-	bool upward = false, downward = false; 
-	if (circularityOfDirection > circularityLimit){
+	bool upward = false, downward = false;
+	if (circularityOfDirection > circularityLimit) {
 		cout << "direction is downward! " << endl;
 		downward = true;
 	}
@@ -438,7 +438,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 											{
 												for (int b = o; b > -1; b--)
 												{
-													cout << "points: " << Point(a, b) << endl;
+													//cout << "points: " << Point(a, b) << endl;
 													/*		countCurrent = countCurrent + 1;
 															if (countCurrent == 2) {
 
@@ -460,10 +460,10 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 														Moments z = moments(filteredImageNew_clone, false);
 														Point p1(z.m10 / z.m00, z.m01 / z.m00);
 														//p1.y is actually X point on the coordinate system
-														cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+														//cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 
 														currentPixelValueAtCoordinate = filteredImageNew.at<uchar>((p1.y) - 1, p1.x);
-														cout << "currentPixelValueAtCoordinate1: " << currentPixelValueAtCoordinate << endl;
+														//cout << "currentPixelValueAtCoordinate1: " << currentPixelValueAtCoordinate << endl;
 
 														morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
 														if (currentPixelValueAtCoordinate != 0) {
@@ -474,7 +474,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																	circle(filteredImageNew_3D, Point(g, h), 0, Scalar(0, 255, 0), -1);
 																	currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(h - 1, g);
 
-																	cout << "points: " << Point(a, b) << endl;
+																	//cout << "points: " << Point(a, b) << endl;
 
 																	if (currentPixelValueAtCoordinate == 0) {
 
@@ -488,13 +488,13 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 																				if (currentPixelValueAtCoordinate == 0)
 																				{
-																					cout << "points: " << Point(r, t) << endl;
+																					//cout << "points: " << Point(r, t) << endl;
 
 																					int lineLenght = countNonZero(filteredImageNew_clone);
 																					Moments z = moments(filteredImageNew_clone, false);
 																					Point p1(z.m10 / z.m00, z.m01 / z.m00);
 																					//p1.y is actually X point on the coordinate system
-																					cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																					//cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 
 																					currentPixelValueAtCoordinate = filteredImageNew.at<uchar>((p1.y) - 1, p1.x);
 																					cout << "currentPixelValueAtCoordinate1: " << currentPixelValueAtCoordinate << endl;
@@ -512,7 +512,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 
 																								if (currentPixelValueAtCoordinate == 0) {
-																									cout << "points: " << Point(a, b) << endl;
+																									//cout << "points: " << Point(a, b) << endl;
 																									for (int t = h; t < h + 1; h++)
 																									{
 																										for (int r = g; r > -1; r--)
@@ -526,7 +526,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																												Moments z = moments(filteredImageNew_clone, false);
 																												Point p1(z.m10 / z.m00, z.m01 / z.m00);
 																												//p1.y is actually X point on the coordinate system
-																												cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																												//cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 
 																												currentPixelValueAtCoordinate = filteredImageNew.at<uchar>((p1.y) - 1, p1.x);
 																												cout << "currentPixelValueAtCoordinate1: " << currentPixelValueAtCoordinate << endl;
@@ -576,7 +576,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																		Moments z = moments(filteredImageNew_clone, false);
 																		Point p1(z.m10 / z.m00, z.m01 / z.m00);
 																		//p1.y is actually X point on the coordinate system
-																		cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																		//cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 																		morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
 																		for (int f = p1.y; f < p1.y + 1; f++)
 																		{
@@ -613,7 +613,6 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																										currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(f, c - 1);
 
 																										if (currentPixelValueAtCoordinate == 0) {
-																											cout << "pause: " << endl;
 
 																											for (int t = c; t < c + 1; c++)
 																											{
@@ -625,25 +624,21 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																													currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(s + 1, t);
 
 																													if (currentPixelValueAtCoordinate == 0) {
-																														cout << "pause: " << endl;
 																														int lineLenght = countNonZero(filteredImageNew_clone);
 																														Moments z = moments(filteredImageNew_clone, false);
 																														Point p1(z.m10 / z.m00, z.m01 / z.m00);
 																														//p1.y is actually X point on the coordinate system
-																														cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																														//cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 																														morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
 																														for (int f = p1.y; f < p1.y + 1; f++)
 																														{
 																															for (int c = p1.x; c > -1; c--)
 																															{
-
 																																//BGR is normal format when using scalar
 																																circle(filteredImageNewFilled, Point(c, f), 0, Scalar(255, 0, 0), -1);
 																																currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(f, c - 1);
 
-
 																																if (currentPixelValueAtCoordinate == 0) {
-																																	cout << "pause: " << endl;
 																																	for (int t = c; t < c + 1; c++)
 																																	{
 																																		for (int s = f; s < filteredImageNew.rows; s++)
@@ -654,25 +649,22 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																																			currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(s + 1, t);
 
 																																			if (currentPixelValueAtCoordinate == 0) {
-																																				cout << "pause: " << endl;
 																																				int lineLenght = countNonZero(filteredImageNew_clone);
 																																				Moments z = moments(filteredImageNew_clone, false);
 																																				Point p1(z.m10 / z.m00, z.m01 / z.m00);
 																																				//p1.y is actually X point on the coordinate system
-																																				cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																																				//cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 																																				morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
 																																				for (int f = p1.y; f < p1.y + 1; f++)
 																																				{
 																																					for (int c = p1.x; c > -1; c--)
 																																					{
-
 																																						//BGR is normal format when using scalar
 																																						circle(filteredImageNewFilled, Point(c, f), 0, Scalar(255, 0, 0), -1);
 																																						currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(f, c - 1);
 
 
 																																						if (currentPixelValueAtCoordinate == 0) {
-																																							cout << "pause: " << endl;
 																																							for (int t = c; t < c + 1; c++)
 																																							{
 																																								for (int s = f; s < filteredImageNew.rows; s++)
@@ -683,13 +675,11 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																																									currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(s + 1, t);
 
 																																									if (currentPixelValueAtCoordinate == 0) {
-
-																																										cout << "pause: " << endl;
 																																										int lineLenght = countNonZero(filteredImageNew_clone);
 																																										Moments z = moments(filteredImageNew_clone, false);
 																																										Point p1(z.m10 / z.m00, z.m01 / z.m00);
 																																										//p1.y is actually X point on the coordinate system
-																																										cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																																										//cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 																																										morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
 																																										for (int f = p1.y; f < p1.y + 1; f++)
 																																										{
@@ -711,23 +701,21 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																																															circle(filteredImageNew_clone, Point(t, s), 0, Scalar(255), -1);
 																																															currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(s + 1, t);
 																																															Point2i test2(t, s);
-																																															cout << "test1.x: " << test1.x << endl;
-																																															cout << "test2.x: " << test2.x << endl;
-																																															cout << "test1.y: " << test1.y << endl;
-																																															cout << "test2.y: " << test2.y << endl;
+
+																																															/*		cout << "test1.x: " << test1.x << endl;
+																																																	cout << "test2.x: " << test2.x << endl;
+																																																	cout << "test1.y: " << test1.y << endl;
+																																																	cout << "test2.y: " << test2.y << endl;*/
 
 																																															if (currentPixelValueAtCoordinate == 0)
 																																															{
-																																																cout << "pause: " << endl;
-
 																																																if (test1.x == test2.x)
 																																																{
-																																																	cout << "pause: " << endl;
 																																																	int lineLenght = countNonZero(filteredImageNew_clone);
 																																																	Moments z = moments(filteredImageNew_clone, false);
 																																																	Point p1(z.m10 / z.m00, z.m01 / z.m00);
 																																																	//p1.y is actually X point on the coordinate system
-																																																	cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																																																	//cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 																																																	morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
 																																																	for (int f = p1.y; f < p1.y + 1; f++)
 																																																	{
@@ -742,12 +730,11 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 
 																																																			if (currentPixelValueAtCoordinate == 0) {
-																																																				cout << "pause: " << endl;
 																																																				int lineLenght = countNonZero(filteredImageNew_clone);
 																																																				Moments z = moments(filteredImageNew_clone, false);
 																																																				Point p1(z.m10 / z.m00, z.m01 / z.m00);
 																																																				//p1.y is actually X point on the coordinate system
-																																																				cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																																																				//cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 																																																				morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
 																																																				for (int f = p1.x; f < p1.x + 1; f++)//hatalý
 																																																				{
@@ -757,7 +744,6 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																																																						currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(c, f - 1);
 
 																																																						if (currentPixelValueAtCoordinate == 0) {
-																																																							cout << "pause: " << endl;
 																																																							for (int t = c; t < f + 1; f++)
 																																																							{
 																																																								for (int s = f; s < filteredImageNew.cols; s++)
@@ -768,9 +754,6 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																																																									currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(t, s + 1);
 
 																																																									if (currentPixelValueAtCoordinate == 0) {
-
-																																																										cout << "pause: " << endl;
-																																																										cout << "pause: " << endl;
 																																																										int lineLenght = countNonZero(filteredImageNew_clone);
 																																																										Moments z = moments(filteredImageNew_clone, false);
 																																																										Point p1(z.m10 / z.m00, z.m01 / z.m00);
@@ -797,7 +780,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																																																																Moments z = moments(filteredImageNew_clone, false);
 																																																																Point p1(z.m10 / z.m00, z.m01 / z.m00);
 																																																																//p1.y is actually X point on the coordinate system
-																																																																cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																																																																//cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 																																																																morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
 																																																																for (int f = p1.x; f < p1.x + 1; f++)
 																																																																{
@@ -805,7 +788,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																																																																	{
 																																																																		circle(filteredImageNewFilled, Point(f, c), 0, Scalar(0, 255, 255), -1);
 																																																																		currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(c + 1, f);
-																																																																		cout << "points: " << Point(c, f) << endl;
+																																																																		//cout << "points: " << Point(c, f) << endl;
 
 																																																																		if (currentPixelValueAtCoordinate == 0) {
 
