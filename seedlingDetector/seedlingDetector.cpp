@@ -21,6 +21,10 @@ auto determineThresholdSeedlingToLeaf(int y, int x, int& heightSeedling,
 	int currentValueLeft, bool finalWhitePixelLeft2, int sumWhitePixelToTheLeft2,
 	int& rowThicknessWhenCollapsed, int& currentHeightAtWhitePoint) -> void;
 
+float realBodyThickness = 0.69;
+float realBodyHeight = 30.00;
+float realLeafLength = 20.00;
+
 seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedlingDetectorPreferences& prefs)
 {
 	seedlingDetectorResult result;
@@ -77,12 +81,10 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	/*****************testing pic for artifact cleared env start***************************/
 
-	/*filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/asd.png");
-	cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);*/
+	//filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/asd.png");
+	//cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);
 
 	/*****************testing pic for artifact cleared env end***************************/
-
-
 
 	int value = 0;
 	int whitePixelCounter = 0;
@@ -196,8 +198,9 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	}
 	//cout << "sumWhitePixelToTheRight: " << sumWhitePixelToTheRight << endl;
 
-	int seedlingThickness = sumWhitePixelToTheLeft + sumWhitePixelToTheRight;
-	cout << "seedlingThickness(OguzhanHoca): " << seedlingThickness << endl;
+	/*calculates body thickness by adding left pixel count and right pixel count of the determined intensive point*/
+	float bodyThickness = sumWhitePixelToTheLeft + sumWhitePixelToTheRight;
+	//cout << "bodyThickness: " << bodyThickness << endl;
 
 
 	int horizontalMarginValue = 30; // margin that is direct the point left 
@@ -218,9 +221,6 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	int startSeedlingPoint = highestIntensityColumnIndex;
 
 	int currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(bottomStartPoint, highestIntensityColumnIndex);
-	//cout << "currentPixelValueAtCoordinateBefore: " << currentPixelValueAtCoordinate << endl;
-
-	//circle(filteredImageNew_3D, Point(startSeedlingPoint, bottomStartPoint), 0, Scalar(255, 0, 255), -1);
 
 	if (sumWhitePixelToTheLeft < sumWhitePixelToTheRight)
 	{
@@ -255,7 +255,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	definedRectWidth = definedRectWidth * 2;
 
-	while (rowThicknessWhenCollapsed <= (seedlingThickness + epsilon)) {
+	while (rowThicknessWhenCollapsed <= (bodyThickness + epsilon)) {
 		for (int y = startSeedlingPoint; y < startSeedlingPoint + 1; y++)
 		{
 			for (int x = bottomStartPoint; x > 0; x--)
@@ -283,11 +283,16 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 			}
 		}
 	}
+	/*calculates seedling Body Height by subtracting bottom margin value to determine the least bottom point point, then added vertical margin value with the road lenght to reach the top*/
+	int bottomPartOfBodyHeight = (filteredImageNew.rows - bottom_margin) - lastWhitePixelInHighestIntensityLine + verticalMarginValueForBottomStartPoint;
+	//cout << "bottomPartOfBodyHeight: " << bottomPartOfBodyHeight << endl;
+	float bodyHeight = heightSeedlingSum + bottomPartOfBodyHeight;
+
 	int leftStartPixelPoint = 0, currentPixelValueAtCoordinateRight = 0, currentPixelValueAtCoordinateLeft = 0;
 	Mat filterRect;
 	if (isLeftOriented == true) {
 		leftStartPixelPoint = startSeedlingPoint + horizontalMarginValueForBottomStart;
-		Rect filterRegion(leftStartPixelPoint - (100 + seedlingThickness), bottomStartPoint - (100 + seedlingThickness), 100 + seedlingThickness, 100 + seedlingThickness);
+		Rect filterRegion(leftStartPixelPoint - (100 + bodyThickness), bottomStartPoint - (100 + bodyThickness), 100 + bodyThickness, 100 + bodyThickness);
 		filterRect = filteredImageNew(filterRegion);
 
 	}
@@ -496,13 +501,13 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																					//p1.y is actually X point on the coordinate system
 																					//cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 
-																					currentPixelValueAtCoordinate = filteredImageNew.at<uchar>((p1.y) - 1, p1.x);
+																					//currentPixelValueAtCoordinate = filteredImageNew.at<uchar>((p1.y) - 1, p1.x);
 																					cout << "currentPixelValueAtCoordinate1: " << currentPixelValueAtCoordinate << endl;
 
 																					morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
 
 																					if (currentPixelValueAtCoordinate != 0) {
-																						cout << "currentPixelValueAtCoordinate1: " << currentPixelValueAtCoordinate << endl;
+																						//cout << "currentPixelValueAtCoordinate1: " << currentPixelValueAtCoordinate << endl;
 																						for (int g = p1.x; g < p1.x + 1; g++)
 																						{
 																							for (int h = p1.y; h > -1; h--)
@@ -529,7 +534,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																												//cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 
 																												currentPixelValueAtCoordinate = filteredImageNew.at<uchar>((p1.y) - 1, p1.x);
-																												cout << "currentPixelValueAtCoordinate1: " << currentPixelValueAtCoordinate << endl;
+																												//cout << "currentPixelValueAtCoordinate1: " << currentPixelValueAtCoordinate << endl;
 
 																												morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
 																												if (currentPixelValueAtCoordinate != 0) {
@@ -758,7 +763,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 																																																										Moments z = moments(filteredImageNew_clone, false);
 																																																										Point p1(z.m10 / z.m00, z.m01 / z.m00);
 																																																										//p1.y is actually X point on the coordinate system
-																																																										cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
+																																																										//cout << "points: " << Point((p1.y) - 1, p1.x) << endl;
 																																																										morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
 																																																										for (int f = p1.x; f < p1.x + 1; f++)
 																																																										{
@@ -792,13 +797,24 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 																																																																		if (currentPixelValueAtCoordinate == 0) {
 
-																																																																			int leafLenght = sqrt((c - bottomStartPoint) * (c - bottomStartPoint) + (f - leftStartPixelPoint) * (f - leftStartPixelPoint));
+																																																																			float leafLength = sqrt((c - bottomStartPoint) * (c - bottomStartPoint) + (f - leftStartPixelPoint) * (f - leftStartPixelPoint));
+																																																																			cout << "*****************_Calculated Results_(px)***************" <<   endl;
+																																																																			cout << "bodyThickness: " << bodyThickness << endl;
+																																																																			cout << "bodyHeight: " << bodyHeight << endl;
+																																																																			cout << "leafLength: " << leafLength << endl;
+																																																																			cout << "********************_Real Results_(mm)******************" << endl;
+																																																																			cout << "realBodyThickness: " << realBodyThickness << endl;
+																																																																			cout << "realBodyHeight: " << realBodyHeight << endl;
+																																																																			cout << "realLeafLength: " << realLeafLength << endl;
 
-																																																																			cout << "leafLenght: " << leafLenght << endl;
-
+																																																																			float calibrationValueLL = ((realLeafLength * 100) / (leafLength * 100));
+																																																																			float calibrationValueBH =((realBodyHeight * 100) / (bodyHeight * 100));
+																																																																			float calibrationValueBT = ((realBodyThickness * 100) / (bodyThickness * 100));
+																																																																			cout << "****************_Calibration Values_******************" << endl;
+																																																																			cout << "calibrationValueLL: " << (ceil((calibrationValueLL*1000))/1000) << endl;
+																																																																			cout << "calibrationValueBH: " << (ceil((calibrationValueBH*1000))/1000) << endl;
+																																																																			cout << "calibrationValueBT: " << (ceil((calibrationValueBT*1000))/1000) << endl;
 																																																																			cout << "end for now: " << endl;
-
-
 																																																																		}
 																																																																	}
 																																																																}
@@ -884,32 +900,18 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 					//	}
 					//}
 				}
-
 			}
 		}
 
 	}
 
-
 	cout << "startSeedlingPoint(y-end): " << leftStartPixelPoint << endl;
 	cout << "bottomStartPoint(x-end): " << bottomStartPoint << endl;
 
-
-
-
-
-
-
-
-
-
 	//determine and crop seedling_area in matrix
-	cv::Rect rectSeedling(leftStart + horizontalMarginValueForBottomStart, bottomStartPoint, (highestIntensityColumnIndex - leftStart) + seedlingThickness * 2, heightSeedlingSum + verticalMarginValueForBottomStartPoint);
+	cv::Rect rectSeedling(leftStart + horizontalMarginValueForBottomStart, bottomStartPoint, (highestIntensityColumnIndex - leftStart) + bodyThickness * 2, heightSeedlingSum + verticalMarginValueForBottomStartPoint);
 
 	seedlingArea = filteredImageNew(rectSeedling);
-
-	cout << "heightSeedlingSum: " << heightSeedlingSum << endl;
-
 
 	Mat seedlingAreaEroded, seedlingAreaDilated;
 	morphologyEx(seedlingArea, seedlingAreaEroded, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 3);
@@ -942,10 +944,10 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 			}
 		}
 	}
-	cout << "averageWhitePixels_CenterMode: " << averageWhitePixels << endl;
+	//cout << "averageWhitePixels_CenterMode: " << averageWhitePixels << endl;
 
-	int seedlingHeight = heightSeedlingSum + verticalMarginValueForBottomStartPoint;
-	cout << "seedlingHeight: " << seedlingHeight << " pixel." << endl;
+	//int seedlingHeight = heightSeedlingSum + verticalMarginValueForBottomStartPoint;
+	//cout << "seedlingHeight: " << seedlingHeight << " pixel." << endl;
 
 	return result;
 }
