@@ -58,8 +58,8 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	thresholded_dst = thresholded_labels > 0;
 	//crop
-	int topStart = 150, bottom_margin = 150;
-	//int topStart = 1, bottom_margin = 70; //70 value for new image template
+	//int topStart = 150, bottom_margin = 150;
+	int topStart = 1, bottom_margin = 70; //70 value for new image template
 
 	int bottomStart = thresholded_dst.rows - bottom_margin;
 	for (int i = 0; i < thresholded_dst.cols; i++) {
@@ -87,8 +87,8 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	/*****************testing pic for artifact cleared env start***************************/
 
-	filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/1_5.png");
-	cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);
+	//filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/1_5.png");
+	//cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);
 
 	/*****************testing pic for artifact cleared env end***************************/
 
