@@ -58,8 +58,8 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	thresholded_dst = thresholded_labels > 0;
 	//crop
-	//int topStart = 150, bottom_margin = 150;
-	int topStart = 1, bottom_margin = 70; //70 value for new image template
+	int topStart = 150, bottom_margin = 150;
+	//int topStart = 1, bottom_margin = 70; //70 value for new image template
 
 	int bottomStart = thresholded_dst.rows - bottom_margin;
 	for (int i = 0; i < thresholded_dst.cols; i++) {
@@ -87,8 +87,8 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	/*****************testing pic for artifact cleared env start***************************/
 
-	//filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/asd.png");
-	//cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);
+	filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/1_5.png");
+	cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);
 
 	/*****************testing pic for artifact cleared env end***************************/
 
@@ -398,6 +398,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	int newX = 0;
 	bool stageSecond = false;
 	vector<float> peakDistances;
+	float leafLength;
 	/*if (upward == true) {*/
 	for (int x = BX; x > 0; x--)
 	{
@@ -412,6 +413,10 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 			determineLeafStartToLeafPeakPoint(x, BY, controlCurrentPixelValueAtCoordinate, filteredImageNew, filteredImageNew_3D, filteredImageNew_clone, isLeftOriented, isRightOriented, pointFirst, stageSecond, peakDistances, bottomStartPoint, leftStartPixelPoint);
 			currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x - 1, BY);
 			if (currentPixelValueAtCoordinate == 0) {	//continueToIterate = true;
+				cout << "x: " << x << endl;
+				cout << "BY: " << BY << endl;
+				leafLength = sqrt((x - bottomStartPoint) * (x - bottomStartPoint) + (BY - leftStartPixelPoint) * (BY - leftStartPixelPoint));
+				cout << "leafLength: " << leafLength << endl;
 				newX = x;
 				break;
 			}
@@ -432,6 +437,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 			}
 		}
 	}
+	cout << "leafLength: " << leafLength << endl;
 
 	//for (int y = leftStartPixelPoint; y < leftStartPixelPoint + 1; y++)
 	//{
@@ -1075,39 +1081,91 @@ auto determineLeafStartToLeafPeakPoint(int& x, int& y, int currentPixelValueAtCo
 	bool isRightOriented, const Point2i& pointFirst, bool stageSecond, vector<float>& peakDistances, int bottomStartPoint, int leftStartPixelPoint) -> void
 {
 	//for forwarding to the left from the current collapsed pixel
-	for (int m = y; m > -1; m--)
-	{
-		circle(filteredImageNew_3D, Point(m, x), 0, Scalar(0, 0, 255), -1);
-		circle(filteredImageNew_clone, Point(m, x), 0, Scalar(255), -1);
-		// this gets the next pixel at the current spesific pixel in order to calculate if it is collapsed the corner of the object to move forward, looks the next left pixel
-		currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x, m - 1);
-		
-		//cout << "pointFirst.x: " << pointFirst.x << endl;
-		//cout << "pointSecond.x: " << pointSecond.x << endl;
-		//cout << "pointFirst.y: " << pointFirst.y << endl;
-		//cout << "pointSecond.y: " << pointSecond.y << endl;
-
-		if (currentPixelValueAtCoordinate == 0)
+	if (isLeftOriented == true) {
+		for (int m = y; m > -1; m--)
 		{
-			const Point2i pointSecond(m, x);
-			//get the center pixel of the line in order to jump through vertically
-			const Moments z = moments(filteredImageNew_clone, false);
-			const Point p1(z.m10 / z.m00, z.m01 / z.m00);
-			morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
-			x = p1.y;
-			y = p1.x;
-			if (pointFirst.x == pointSecond.x && stageSecond == true)
+			circle(filteredImageNew_3D, Point(m, x), 0, Scalar(0, 0, 255), -1);
+			circle(filteredImageNew_clone, Point(m, x), 0, Scalar(255), -1);
+			// this gets the next pixel at the current spesific pixel in order to calculate if it is collapsed the corner of the object to move forward, looks the next left pixel
+			currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x, m - 1);
+
+			//cout << "pointFirst.x: " << pointFirst.x << endl;
+			//cout << "pointSecond.x: " << pointSecond.x << endl;
+			//cout << "pointFirst.y: " << pointFirst.y << endl;
+			//cout << "pointSecond.y: " << pointSecond.y << endl;
+
+			if (currentPixelValueAtCoordinate == 0)
 			{
-				cout << "Collapsed! " << endl;
-				cout << "x: " << x << endl;
-				cout << "y: " << y << endl;
-				cout << "bottomStartPoint: " << bottomStartPoint  << endl;
-				cout << "leftStartPixelPoint: " << leftStartPixelPoint << endl;
-				float leafLength = sqrt((x - bottomStartPoint) * (x - bottomStartPoint) + (y - leftStartPixelPoint) * (y - leftStartPixelPoint));
-				cout << "leafLength: " << leafLength << endl;
-				peakDistances.push_back(leafLength);
+				const Point2i pointSecond(m, x);
+				//get the center pixel of the line in order to jump through vertically
+				const Moments z = moments(filteredImageNew_clone, false);
+				const Point p1(z.m10 / z.m00, z.m01 / z.m00);
+				morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
+				x = p1.y;
+				y = p1.x;
+				if (pointFirst.x == pointSecond.x && stageSecond == true)
+				{
+					cout << "Collapsed! " << endl;
+					cout << "x: " << x << endl;
+					cout << "y: " << y << endl;
+					cout << "bottomStartPoint: " << bottomStartPoint << endl;
+					cout << "leftStartPixelPoint: " << leftStartPixelPoint << endl;
+					float leafLength = sqrt((x - bottomStartPoint) * (x - bottomStartPoint) + (y - leftStartPixelPoint) * (y - leftStartPixelPoint));
+					cout << "leafLength: " << leafLength << endl;
+					peakDistances.push_back(leafLength);
+					//Rect ccomp;
+					//															cout << "points: " << Point(a, b) << endl;
+					//floodFill(filteredImageNew_3D, Point(y+1, x), Scalar(155, 255, 55), &ccomp, Scalar(20, 20, 20), Scalar(20, 20, 20));
+
+					cout << "end " << endl;
+				}
+				break;
 			}
-			break;
+		}
+	}
+	else if (isRightOriented == true )
+	{
+		cout << "y: " << y << endl;
+		cout << "filteredImageNew.cols: " << filteredImageNew.cols << endl;
+		for (int m = y; m < filteredImageNew.cols; m++)
+		{
+			circle(filteredImageNew_3D, Point(m, x), 0, Scalar(0, 0, 255), -1);
+			circle(filteredImageNew_clone, Point(m, x), 0, Scalar(255), -1);
+			// this gets the next pixel at the current spesific pixel in order to calculate if it is collapsed the corner of the object to move forward, looks the next left pixel
+			currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x, m + 1);
+
+			//cout << "pointFirst.x: " << pointFirst.x << endl;
+			//cout << "pointSecond.x: " << pointSecond.x << endl;
+			//cout << "pointFirst.y: " << pointFirst.y << endl;
+			//cout << "pointSecond.y: " << pointSecond.y << endl;
+
+			if (currentPixelValueAtCoordinate == 0)
+			{
+				const Point2i pointSecond(m, x);
+				//get the center pixel of the line in order to jump through vertically
+				const Moments z = moments(filteredImageNew_clone, false);
+				const Point p1(z.m10 / z.m00, z.m01 / z.m00);
+				morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
+				x = p1.y;
+				y = p1.x;
+				if (pointFirst.x == pointSecond.x && stageSecond == true)
+				{
+					cout << "Collapsed! " << endl;
+					cout << "x: " << x << endl;
+					cout << "y: " << y << endl;
+					cout << "bottomStartPoint: " << bottomStartPoint << endl;
+					cout << "leftStartPixelPoint: " << leftStartPixelPoint << endl;
+					float leafLength = sqrt((x - bottomStartPoint) * (x - bottomStartPoint) + (y - leftStartPixelPoint) * (y - leftStartPixelPoint));
+					cout << "leafLength: " << leafLength << endl;
+					peakDistances.push_back(leafLength);
+					//Rect ccomp;
+					//															cout << "points: " << Point(a, b) << endl;
+					//floodFill(filteredImageNew_3D, Point(y+1, x), Scalar(155, 255, 55), &ccomp, Scalar(20, 20, 20), Scalar(20, 20, 20));
+
+					cout << "end " << endl;
+				}
+				break;
+			}
 		}
 	}
 }
