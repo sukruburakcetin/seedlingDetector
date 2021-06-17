@@ -357,7 +357,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	cv::Mat output, channelsConcatenated, channelsConcatenatedDilated;
 	flip(cellRoi, output, 0);
 	vconcat(cellRoi, output, channelsConcatenated);
-	morphologyEx(channelsConcatenated, channelsConcatenatedDilated, MORPH_DILATE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 2);
+	morphologyEx(channelsConcatenated, channelsConcatenatedDilated, MORPH_DILATE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 5);
 	Mat contours_labels1, contours_stats1, contours_centroids1, contours_doubleStats1;
 
 	vector<vector<Point>> objectContours;
