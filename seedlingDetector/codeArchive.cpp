@@ -657,3 +657,94 @@
 
 	//}  
 #endif // !
+
+
+
+
+//cout << "points1: " << Point(x, m) << endl;
+
+//cout << "x: " << l << endl;
+//cout << "y: " << m << endl;
+
+//cout << "points2: " << Point(l, m - 1) << endl;
+//circle(filteredImageNew_clone, p1, 0, Scalar(0, 255, 0), -1);
+
+/*cout << "p1.y: " << p1.y << endl;
+cout << "p1.x: " << p1.x << endl;*/
+//countCurrent = countCurrent + 1;
+
+
+//if (pointFirst.x == pointSecond.x && stageSecond == true)
+//{
+//	/*		cout << "Collapsed! " << endl;
+//			cout << "x: " << x << endl;
+//			cout << "y: " << y << endl;
+//			cout << "bottomStartPoint: " << bottomStartPoint << endl;
+//			cout << "leftStartPixelPoint: " << leftStartPixelPoint << endl;*/
+//	leafLength = sqrt((x - bottomStartPoint) * (x - bottomStartPoint) + (y - leftStartPixelPoint) * (y - leftStartPixelPoint));
+//	peakDistances.push_back(leafLength);
+//	cout << "leafLength: " << leafLength << endl;
+//	//Rect ccomp;
+//	//cout << "points: " << Point(a, b) << endl;
+//	//floodFill(filteredImageNew_3D, Point(y+1, x), Scalar(155, 255, 55), &ccomp, Scalar(20, 20, 20), Scalar(20, 20, 20));
+//	cout << "endLeft1 " << endl;
+//}
+
+
+//if (pointFirst.x == pointSecond.x && stageSecond == true)
+//{
+//	/*		cout << "Collapsed! " << endl;
+//			cout << "x: " << x << endl;
+//			cout << "y: " << y << endl;
+//			cout << "bottomStartPoint: " << bottomStartPoint << endl;
+//			cout << "leftStartPixelPoint: " << leftStartPixelPoint << endl;*/
+//	leafLength = sqrt((x - bottomStartPoint) * (x - bottomStartPoint) + (y - leftStartPixelPoint) * (y - leftStartPixelPoint));
+//	peakDistances.push_back(leafLength);
+//	//cout << "leafLength: " << leafLength << endl;
+//	//Rect ccomp;
+//	//cout << "points: " << Point(a, b) << endl;
+//	//floodFill(filteredImageNew_3D, Point(y+1, x), Scalar(155, 255, 55), &ccomp, Scalar(20, 20, 20), Scalar(20, 20, 20));
+//	cout << "endLeft1 " << endl;
+//}
+
+//!!!! important
+	//determine and crop seedling_area in matrix
+//cv::Rect rectSeedling(leftStart + horizontalMarginValueForBottomStart, bottomStartPoint, (highestIntensityColumnIndex - leftStart) + bodyThickness * 2, heightSeedlingSum + verticalMarginValueForBottomStartPoint);
+//
+//seedlingArea = filteredImageNew(rectSeedling);
+//
+//Mat seedlingAreaEroded, seedlingAreaDilated;
+//morphologyEx(seedlingArea, seedlingAreaEroded, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 3);
+//morphologyEx(seedlingAreaEroded, seedlingAreaDilated, MORPH_DILATE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 3);
+//
+//int tempNextPoint = 0, averageWhitePixels = 0;
+//int whitePointsSuccesfulStreakAtCurrentRowNew = 0;
+//
+////cout << "startLeft: " << startLeft << endl;
+////cout << "startAlternate: " << startAlternate << endl;
+//
+///*---------------calculate the center of the region starts-----------------------*/
+//
+//Moments m = moments(seedlingAreaDilated, false);
+//Point p1(m.m10 / m.m00, m.m01 / m.m00);
+////cout << Mat(p1) << endl;
+////circle(seedlingAreaDilated, p1, 0, Scalar(0, 0, 0), -1);
+//
+///*---------------calculate the center of the region ends-----------------------*/
+//
+//for (int x = p1.y; x < p1.y + 1; x++)
+//{
+//	for (int y = 0; y < seedlingAreaDilated.cols; y++)
+//	{
+//		value = seedlingAreaDilated.at<uchar>(x, y);
+//		if (value == 255) {
+//			/*		cout << "point: " << Point(x, y) << endl;
+//					seedlingArea.at<uchar>(x, y) = 0;*/
+//			averageWhitePixels = averageWhitePixels + 1;
+//		}
+//	}
+//}
+////cout << "averageWhitePixels_CenterMode: " << averageWhitePixels << endl;
+//
+////int seedlingHeight = heightSeedlingSum + verticalMarginValueForBottomStartPoint;
+////cout << "seedlingHeight: " << seedlingHeight << " pixel." << endl;

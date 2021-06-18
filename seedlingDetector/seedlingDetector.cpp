@@ -23,8 +23,11 @@ auto determineThresholdSeedlingToLeaf(int y, int x, int& heightSeedling,
 auto determineLeafStartToLeafPeakPoint(int& x, int& y, int currentPixelValueAtCoordinate,
 	Mat filteredImageNew,
 	Mat filteredImageNew_3D, Mat filteredImageNew_clone,
-	bool isLeftOriented, bool isRightOriented, const Point2i& pointFirst, bool stageSecond, vector<float>& peakDistances, int bottomStartPoint, int leftStartPixelPoint, int& BY) -> void;
+	bool isLeftOriented, bool isRightOriented, const Point2i& pointFirst, bool stageSecond,
+	vector<float>& peakDistances, int bottomStartPoint, int leftStartPixelPoint, int& BY, bool& finalPoint,
+	float& leafLength) -> void;
 
+auto checkComputeDirection(bool& isLeftOriented, bool& isRightOriented, int x, int y, int currentPixelValueAtCoordinate, Mat filteredImageNew, bool& directionUpdated) -> void;
 
 float realBodyThickness = 0.69;
 float realBodyHeight = 30.00;
@@ -86,7 +89,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 	/*****************testing pic for artifact cleared env start***************************/
 
-	//filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/123123.png");
+	//filteredImageNew = imread("C:/Users/HTG_SOFTWARE/Desktop/asd.png");
 	//cvtColor(filteredImageNew, filteredImageNew, COLOR_RGB2GRAY);
 
 	/*****************testing pic for artifact cleared env end***************************/
@@ -124,7 +127,6 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	}
 	/*-----highestIntensityColumnIndex == yukarýdan aþaðýya en yoðun column(vertical line)-----*/
 	cout << "highestIntensityColumnIndex(y): " << highestIntensityColumnIndex << endl;
-	highestIntensityColumnIndex = 732;
 	for (int y = highestIntensityColumnIndex; y < highestIntensityColumnIndex + 1; y++)
 	{
 		for (int x = 0; x < filteredImageNew.rows; x++)
@@ -395,10 +397,10 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	//cout << "points1: " << Point(BX, BY) << endl;
 
 	int newX = 0;
-	bool stageSecond = false;
+	bool stageSecond = false, finalPoint = false, directionUpdated = false;
 	vector<float> peakDistances;
 	float leafLength;
-	/*if (upward == true) {*/
+
 	for (int x = BX; x > 0; x--)
 	{
 		currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x - 1, BY);
@@ -409,33 +411,36 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		//cout << "currentPixelValueAtCoordinate: " << currentPixelValueAtCoordinate << endl;
 		const Point2i pointFirst(BY, x);
 		if (currentPixelValueAtCoordinate == 0) {
+			if (directionUpdated == false) {
+				checkComputeDirection(isLeftOriented, isRightOriented, x, BY, currentPixelValueAtCoordinate, filteredImageNew, directionUpdated);
+			}
+
 			determineLeafStartToLeafPeakPoint(x, BY, controlCurrentPixelValueAtCoordinate, filteredImageNew,
-			                                  filteredImageNew_3D, filteredImageNew_clone, isLeftOriented,
-			                                  isRightOriented, pointFirst, stageSecond, peakDistances, bottomStartPoint,
-			                                  leftStartPixelPoint, newX);
+				filteredImageNew_3D, filteredImageNew_clone, isLeftOriented,
+				isRightOriented, pointFirst, stageSecond, peakDistances, bottomStartPoint,
+				leftStartPixelPoint, BY, finalPoint, leafLength);
 			currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x - 1, BY);
-			if (currentPixelValueAtCoordinate == 0) {	//continueToIterate = true;
+			if (currentPixelValueAtCoordinate == 0) {
 				cout << "x: " << x << endl;
 				cout << "BY: " << BY << endl;
 				leafLength = sqrt((x - bottomStartPoint) * (x - bottomStartPoint) + (BY - leftStartPixelPoint) * (BY - leftStartPixelPoint));
-				cout << "leafLength: " << leafLength << endl;
+				cout << "leafLength_at_firstPeak: " << leafLength << endl;
 				newX = x;
 				break;
 			}
 		}
 	}
-
 	if (downward == true)
 	{
 		stageSecond = true;
-		cout << "PointCurrent: " << Point(newX, BY) << endl;
+		//cout << "PointCurrent: " << Point(newX, BY) << endl;
 		for (int x = newX; x < filteredImageNew.rows; x++) {
 			currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x + 1, BY);
 			// colors the test area to let developer track the code
 			circle(filteredImageNew_3D, Point(BY, x), 0, Scalar(255, 0, 255), -1);
 			circle(filteredImageNew_clone, Point(BY, x), 0, Scalar(255), -1);
 			const Point2i pointFirst(BY, x);
-			cout << "alo x: " << x << endl;
+			//cout << "alo x: " << x << endl;
 			if (currentPixelValueAtCoordinate == 0) {
 				const Point2i pointSecond(BY, x);
 				//get the center pixel of the line in order to jump through vertically
@@ -445,58 +450,38 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 				x = p1.y;
 				BY = p1.x;
 				determineLeafStartToLeafPeakPoint(x, BY, controlCurrentPixelValueAtCoordinate, filteredImageNew,
-				                                  filteredImageNew_3D, filteredImageNew_clone, isLeftOriented,
-				                                  isRightOriented, pointFirst, stageSecond, peakDistances,
-				                                  bottomStartPoint, leftStartPixelPoint, BY);
+					filteredImageNew_3D, filteredImageNew_clone, isLeftOriented,
+					isRightOriented, pointFirst, stageSecond, peakDistances,
+					bottomStartPoint, leftStartPixelPoint, BY, finalPoint, leafLength);
+				if (finalPoint == true)
+				{
+					break;
+				}
 			}
 		}
 	}
+	//cout << "leafLength: " << leafLength << endl;
+	//cout << "startSeedlingPoint(y-end): " << leftStartPixelPoint << endl;
+	//cout << "bottomStartPoint(x-end): " << bottomStartPoint << endl;
+
+	cout << "*****************_Calculated Results_(px)***************" << endl;
+	cout << "bodyThickness: " << bodyThickness << endl;
+	cout << "bodyHeight: " << bodyHeight << endl;
 	cout << "leafLength: " << leafLength << endl;
+	cout << "********************_Real Results_(mm)******************" << endl;
+	cout << "realBodyThickness: " << realBodyThickness << endl;
+	cout << "realBodyHeight: " << realBodyHeight << endl;
+	cout << "realLeafLength: " << realLeafLength << endl;
 
-	cout << "startSeedlingPoint(y-end): " << leftStartPixelPoint << endl;
-	cout << "bottomStartPoint(x-end): " << bottomStartPoint << endl;
-
-	//determine and crop seedling_area in matrix
-	cv::Rect rectSeedling(leftStart + horizontalMarginValueForBottomStart, bottomStartPoint, (highestIntensityColumnIndex - leftStart) + bodyThickness * 2, heightSeedlingSum + verticalMarginValueForBottomStartPoint);
-
-	seedlingArea = filteredImageNew(rectSeedling);
-
-	Mat seedlingAreaEroded, seedlingAreaDilated;
-	morphologyEx(seedlingArea, seedlingAreaEroded, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 3);
-	morphologyEx(seedlingAreaEroded, seedlingAreaDilated, MORPH_DILATE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 3);
-
-	int tempNextPoint = 0, averageWhitePixels = 0;
-	int whitePointsSuccesfulStreakAtCurrentRowNew = 0;
-
-	//cout << "startLeft: " << startLeft << endl;
-	//cout << "startAlternate: " << startAlternate << endl;
-
-	/*---------------calculate the center of the region starts-----------------------*/
-
-	Moments m = moments(seedlingAreaDilated, false);
-	Point p1(m.m10 / m.m00, m.m01 / m.m00);
-	//cout << Mat(p1) << endl;
-	//circle(seedlingAreaDilated, p1, 0, Scalar(0, 0, 0), -1);
-
-	/*---------------calculate the center of the region ends-----------------------*/
-
-	for (int x = p1.y; x < p1.y + 1; x++)
-	{
-		for (int y = 0; y < seedlingAreaDilated.cols; y++)
-		{
-			value = seedlingAreaDilated.at<uchar>(x, y);
-			if (value == 255) {
-				/*		cout << "point: " << Point(x, y) << endl;
-						seedlingArea.at<uchar>(x, y) = 0;*/
-				averageWhitePixels = averageWhitePixels + 1;
-			}
-		}
-	}
-	//cout << "averageWhitePixels_CenterMode: " << averageWhitePixels << endl;
-
-	//int seedlingHeight = heightSeedlingSum + verticalMarginValueForBottomStartPoint;
-	//cout << "seedlingHeight: " << seedlingHeight << " pixel." << endl;
-
+	float calibrationValueLL = ((realLeafLength * 100) / (leafLength * 100));
+	float calibrationValueBH = ((realBodyHeight * 100) / (bodyHeight * 100));
+	float calibrationValueBT = ((realBodyThickness * 100) / (bodyThickness * 100));
+	cout << "****************_Calibration Values_******************" << endl;
+	cout << "calibrationValueLL: " << (ceil((calibrationValueLL * 1000)) / 1000) << endl;
+	cout << "calibrationValueBH: " << (ceil((calibrationValueBH * 1000)) / 1000) << endl;
+	cout << "calibrationValueBT: " << (ceil((calibrationValueBT * 1000)) / 1000) << endl;
+	cout << "end for now: " << endl;
+	
 	return result;
 }
 
@@ -565,27 +550,24 @@ auto determineThresholdSeedlingToLeaf(int y, int x, int& heightSeedling,
 	}
 }
 
-
 auto determineLeafStartToLeafPeakPoint(int& x, int& y, int currentPixelValueAtCoordinate, Mat filteredImageNew,
 	Mat filteredImageNew_3D, Mat filteredImageNew_clone, bool isLeftOriented,
-	bool isRightOriented, const Point2i& pointFirst, bool stageSecond, vector<float>& peakDistances, int bottomStartPoint, int leftStartPixelPoint, int& BY) -> void
+	bool isRightOriented, const Point2i& pointFirst, bool stageSecond, vector<float>& peakDistances,
+	int bottomStartPoint, int leftStartPixelPoint, int& BY, bool& finalPoint, float& leafLength) -> void
 {
-	//for forwarding to the left from the current collapsed pixel
+
 	if (isLeftOriented == true) {
+		//for forwarding to the left from the current collapsed pixel
 		for (int m = y; m > -1; m--)
 		{
 			circle(filteredImageNew_3D, Point(m, x), 0, Scalar(0, 0, 255), -1);
 
-			if (stageSecond != true){
-			circle(filteredImageNew_clone, Point(m, x), 0, Scalar(255), -1);
+			if (stageSecond != true) {
+				circle(filteredImageNew_clone, Point(m, x), 0, Scalar(255), -1);
 			}
 
 			// this gets the next pixel at the current spesific pixel in order to calculate if it is collapsed the corner of the object to move forward, looks the next left pixel
 			currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x, m - 1);
-			//cout << "pointFirst.x: " << pointFirst.x << endl;
-			//cout << "pointSecond.x: " << pointSecond.x << endl;
-			//cout << "pointFirst.y: " << pointFirst.y << endl;
-			//cout << "pointSecond.y: " << pointSecond.y << endl;
 
 			if (currentPixelValueAtCoordinate == 0 && stageSecond != true)
 			{
@@ -596,64 +578,35 @@ auto determineLeafStartToLeafPeakPoint(int& x, int& y, int currentPixelValueAtCo
 				morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
 				x = p1.y;
 				y = p1.x;
-				if (pointFirst.x == pointSecond.x && stageSecond == true)
-				{
-					cout << "Collapsed! " << endl;
-					cout << "x: " << x << endl;
-					cout << "y: " << y << endl;
-					cout << "bottomStartPoint: " << bottomStartPoint << endl;
-					cout << "leftStartPixelPoint: " << leftStartPixelPoint << endl;
-					float leafLength = sqrt((x - bottomStartPoint) * (x - bottomStartPoint) + (y - leftStartPixelPoint) * (y - leftStartPixelPoint));
-					cout << "leafLength: " << leafLength << endl;
-					peakDistances.push_back(leafLength);
-					//Rect ccomp;
-					//															cout << "points: " << Point(a, b) << endl;
-					//floodFill(filteredImageNew_3D, Point(y+1, x), Scalar(155, 255, 55), &ccomp, Scalar(20, 20, 20), Scalar(20, 20, 20));
-
-					cout << "end " << endl;
-				}
+				//cout << "endLeft1 " << endl;
 				break;
 			}
-
-			else if (currentPixelValueAtCoordinate == 0 && stageSecond == true)
+			if (currentPixelValueAtCoordinate == 0 && stageSecond == true)
 			{
 				const Point2i pointSecond(m, x);
-				cout << "Collapsed222! " << endl;
 				BY = m;
 				if (pointFirst.x == pointSecond.x && stageSecond == true)
 				{
-					cout << "Collapsed! " << endl;
-					cout << "x: " << x << endl;
-					cout << "y: " << y << endl;
-					cout << "bottomStartPoint: " << bottomStartPoint << endl;
-					cout << "leftStartPixelPoint: " << leftStartPixelPoint << endl;
-					float leafLength = sqrt((x - bottomStartPoint) * (x - bottomStartPoint) + (y - leftStartPixelPoint) * (y - leftStartPixelPoint));
-					cout << "leafLength: " << leafLength << endl;
+					leafLength = sqrt((x - bottomStartPoint) * (x - bottomStartPoint) + (y - leftStartPixelPoint) * (y - leftStartPixelPoint));
+					//cout << "leafLength: " << leafLength << endl;
 					peakDistances.push_back(leafLength);
+					finalPoint = true;
+					//cout << "endLeft2 " << endl;
 				}
 				break;
 			}
-
-			
 		}
+
 	}
-	else if (isRightOriented == true )
+	else if (isRightOriented == true)
 	{
-		cout << "y: " << y << endl;
-		cout << "filteredImageNew.cols: " << filteredImageNew.cols << endl;
 		for (int m = y; m < filteredImageNew.cols; m++)
 		{
 			circle(filteredImageNew_3D, Point(m, x), 0, Scalar(0, 0, 255), -1);
-			circle(filteredImageNew_clone, Point(m, x), 0, Scalar(255), -1);
 			// this gets the next pixel at the current spesific pixel in order to calculate if it is collapsed the corner of the object to move forward, looks the next left pixel
 			currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x, m + 1);
 
-			//cout << "pointFirst.x: " << pointFirst.x << endl;
-			//cout << "pointSecond.x: " << pointSecond.x << endl;
-			//cout << "pointFirst.y: " << pointFirst.y << endl;
-			//cout << "pointSecond.y: " << pointSecond.y << endl;
-
-			if (currentPixelValueAtCoordinate == 0)
+			if (currentPixelValueAtCoordinate == 0 && stageSecond != true)
 			{
 				const Point2i pointSecond(m, x);
 				//get the center pixel of the line in order to jump through vertically
@@ -662,36 +615,39 @@ auto determineLeafStartToLeafPeakPoint(int& x, int& y, int currentPixelValueAtCo
 				morphologyEx(filteredImageNew_clone, filteredImageNew_clone, MORPH_ERODE, getStructuringElement(CV_SHAPE_ELLIPSE, Size(3, 3)), Point(-1, -1), 1);
 				x = p1.y;
 				y = p1.x;
+				//cout << "endLeft2 " << endl;
+				break;
+			}
+			if (currentPixelValueAtCoordinate == 0 && stageSecond == true)
+			{
+				const Point2i pointSecond(m, x);
+				BY = m;
 				if (pointFirst.x == pointSecond.x && stageSecond == true)
 				{
-					cout << "Collapsed! " << endl;
-					cout << "x: " << x << endl;
-					cout << "y: " << y << endl;
-					cout << "bottomStartPoint: " << bottomStartPoint << endl;
-					cout << "leftStartPixelPoint: " << leftStartPixelPoint << endl;
-					float leafLength = sqrt((x - bottomStartPoint) * (x - bottomStartPoint) + (y - leftStartPixelPoint) * (y - leftStartPixelPoint));
-					cout << "leafLength: " << leafLength << endl;
+					leafLength = sqrt((x - bottomStartPoint) * (x - bottomStartPoint) + (y - leftStartPixelPoint) * (y - leftStartPixelPoint));
+					//cout << "leafLength: " << leafLength << endl;
 					peakDistances.push_back(leafLength);
-					//Rect ccomp;
-					//															cout << "points: " << Point(a, b) << endl;
-					//floodFill(filteredImageNew_3D, Point(y+1, x), Scalar(155, 255, 55), &ccomp, Scalar(20, 20, 20), Scalar(20, 20, 20));
-
-					cout << "end " << endl;
+					finalPoint = true;
+					//cout << "endRight2 " << endl;
 				}
 				break;
 			}
 		}
 	}
 }
-
-//cout << "points1: " << Point(x, m) << endl;
-
-//cout << "x: " << l << endl;
-//cout << "y: " << m << endl;
-
-//cout << "points2: " << Point(l, m - 1) << endl;
-//circle(filteredImageNew_clone, p1, 0, Scalar(0, 255, 0), -1);
-
-/*cout << "p1.y: " << p1.y << endl;
-cout << "p1.x: " << p1.x << endl;*/
-//countCurrent = countCurrent + 1;
+void checkComputeDirection(bool& isLeftOriented, bool& isRightOriented, int x, int y, int currentPixelValueAtCoordinate, Mat filteredImageNew, bool& directionUpdated)
+{
+	currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x, y + 1);
+	if (currentPixelValueAtCoordinate == 0)
+	{
+		isLeftOriented = true;
+		isRightOriented = false;
+	}
+	currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x, y - 1);
+	if (currentPixelValueAtCoordinate == 0)
+	{
+		isLeftOriented = false;
+		isRightOriented = true;
+	}
+	directionUpdated = true;
+};
