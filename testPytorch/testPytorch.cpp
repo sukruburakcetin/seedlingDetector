@@ -13,7 +13,7 @@ int scaleHeight = 256;
 int main(int argc, const char* argv[])
 {
 	Mat image;
-	image = imread("orj/291.png", CV_LOAD_IMAGE_COLOR);
+	image = imread("train_458.png", CV_LOAD_IMAGE_COLOR);
 
 //#pragma region resizing if it is needed
 //	Mat imageResized = Mat::zeros(image.size(), CV_8UC3);
