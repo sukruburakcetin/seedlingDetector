@@ -3,6 +3,8 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include "seedlingDetector.hpp"
+
+#include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include "AutoThreshold.hpp"
 #include "ParticleAnalyzer.hpp"
@@ -37,6 +39,51 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 {
 	seedlingDetectorResult result;
 
+	
+//#pragma region grid analysis for deeplearning start
+//	Mat testpic = imread("C:/8.png");
+//
+//	int width = testpic.cols;
+//	int height = testpic.rows;
+//	int GRID_SIZE = 256, counter = -1;
+//	Mat previousGrid, wholeImageConcat, verticalPartImage1, wholeImageVConcat;
+//	vector<Rect> mCells;
+//	vector<Mat> vCells;
+//	for (int y = 0; y <= height - GRID_SIZE; y += GRID_SIZE) {
+//		for (int x = 0; x <= width - GRID_SIZE; x += GRID_SIZE) {
+//			int k = x * y + x;
+//			Rect grid_rect(x, y, GRID_SIZE, GRID_SIZE);
+//			cout << grid_rect << endl;
+//			mCells.push_back(grid_rect);
+//			//rectangle(testpic, grid_rect, Scalar(0, 255, 0), 0);
+//			counter++;
+//			cout << "x: " << x << endl;
+//			cout << "y: " << y << endl;
+//
+//			if (x == 0) {
+//				previousGrid = testpic(grid_rect);
+//			}
+//			else if (x != 0) {
+//				hconcat(previousGrid, testpic(grid_rect), wholeImageConcat);
+//				previousGrid = wholeImageConcat;
+//				cout << "wholeImage:" << wholeImageConcat.cols << endl;
+//				if (wholeImageConcat.cols == testpic.cols)
+//				{
+//					vCells.push_back(wholeImageConcat);
+//				}
+//			}
+//			//imwrite("grid" + to_string(counter) + ".png", testpic(grid_rect));
+//			//waitKey();
+//		}
+//	}
+//	vconcat(vCells[0], vCells[1], wholeImageVConcat);
+//	vconcat(wholeImageVConcat, vCells[2], wholeImageVConcat);
+//
+//
+//	//imwrite("emreSahin.png", wholeImageVConcat);  
+//#pragma endregion grid analysis for deeplearning end
+
+	
 	Mat rgbColorSpace, labColorSpace, srcMedianF, srcGausF, filteredImage;
 	cvtColor(src, rgbColorSpace, COLOR_RGBA2RGB);
 	cvtColor(rgbColorSpace, labColorSpace, COLOR_RGB2Lab);
