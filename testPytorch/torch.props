@@ -10,7 +10,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)packages\libtorch\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>torch.lib;torch_cuda.lib;caffe2_nvrtc.lib;c10.lib;c10_cuda.lib;torch_cpu.lib;-INCLUDE:?warp_size@cuda@at@@YAHXZ;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>torch_cpu.lib;c10.lib;torch.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy $(SolutionDir)packages\libtorch\lib\*.dll $(SolutionDir)$(Platform)\$(Configuration)\ /c /y</Command>

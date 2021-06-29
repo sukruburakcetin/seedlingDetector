@@ -9,13 +9,19 @@ using namespace cv;
 
 int scaleWidth = 256;
 int scaleHeight = 256;
-
+/// <summary>
+/// GPU2CPU conversation is applied for now*
+/// torch converted from gpu to cpu
+/// </summary>
+/// <param name="argc"></param>
+/// <param name="argv"></param>
+/// <returns></returns>
 int main(int argc, const char* argv[])
 {
 	Mat image;
 	image = imread("train_458.png", CV_LOAD_IMAGE_COLOR);
 
-//#pragma region resizing if it is needed
+	//#pragma region resizing if it is needed
 //	Mat imageResized = Mat::zeros(image.size(), CV_8UC3);
 //
 //	cv::resize(image, imageResized, Size(scaleWidth, scaleHeight), INTER_LINEAR);
@@ -44,7 +50,7 @@ int main(int argc, const char* argv[])
 	// Deserialize the ScriptModule from a file using torch::jit::load().
 	torch::jit::script::Module module;
 	module = torch::jit::load("seedling_segmentation.pt");
-	module.to(torch::kCUDA);
+	module.to(torch::kCPU);
 
 	torch::Tensor tensor_image = torch::from_blob(channelsConcatenatedFloat.data, at::IntList(dims), options);
 	tensor_image = tensor_image.toType(torch::kFloat);
@@ -54,7 +60,7 @@ int main(int argc, const char* argv[])
 	file << tensor_image;
 	file.close();
 
-	torch::Tensor result = module.forward({ tensor_image.to(torch::kCUDA) }).toTensor();
+	torch::Tensor result = module.forward({ tensor_image.to(torch::kCPU) }).toTensor();
 
 	std::ofstream file2;
 	file2.open("result.txt");
