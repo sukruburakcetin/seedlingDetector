@@ -40,7 +40,7 @@ int main(int argc, const char* argv[])
 	torch::jit::script::Module module;
 	module = torch::jit::load("seedling_segmentation.pt");
 	module.to(torch::kCUDA);
-	
+
 	torch::Tensor result = module.forward({ tensor_image.to(torch::kCUDA) }).toTensor();
 
 	result = result.squeeze().detach().permute({ 1, 2, 0 });
@@ -52,7 +52,7 @@ int main(int argc, const char* argv[])
 	cout << "asd << " << endl;
 
 	//222222222222222222222222222222222222222222222222222222222222
-	
+
 	//cv::Mat bgr[3]; // destination array
 	//cv::split(image, bgr);
 	//cv::Mat channelsConcatenated;
