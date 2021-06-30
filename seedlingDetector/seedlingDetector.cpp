@@ -2,6 +2,8 @@
 #include <iostream>
 #include <opencv2/core.hpp>
 #include "seedlingDetector.hpp"
+
+#include <opencv2/imgcodecs.hpp>
 #include <torch/script.h> // One-stop header.
 #include <opencv2/imgproc.hpp>
 #include "AutoThreshold.hpp"
@@ -29,6 +31,9 @@ auto determineLeafStartToLeafPeakPoint(int& x, int& y, int currentPixelValueAtCo
 
 auto checkComputeDirection(bool& isLeftOriented, bool& isRightOriented, int x, int y, int currentPixelValueAtCoordinate, Mat filteredImageNew, bool& directionUpdated) -> void;
 
+Mat seedlingAISegmentation(Mat src);
+int classifyImage(cv::Mat src, float& probablity);
+
 float realBodyThickness = 0.69;
 float realBodyHeight = 30.00;
 float realLeafLength = 20.00;
@@ -37,79 +42,88 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 {
 	seedlingDetectorResult result;
 
-//	
-////#pragma region grid analysis for deeplearning start
-//	Mat inputImage = imread("C:/8.png");
-//
-//	int width = inputImage.cols;
-//	int height = inputImage.rows;
-//	int GRID_SIZE = 256, counter = -1;
-//	Mat previousGrid, wholeImageHConcat, verticalPartImage1, wholeImageVConcat;
-//	vector<Rect> mCells;
-//	vector<Mat> vCells;
-//	for (int y = 0; y <= height - GRID_SIZE; y += GRID_SIZE) {
-//		for (int x = 0; x <= width - GRID_SIZE; x += GRID_SIZE) {
-//			int k = x * y + x;
-//			Rect grid_rect(x, y, GRID_SIZE, GRID_SIZE);
-//			cout << grid_rect << endl;
-//			mCells.push_back(grid_rect);
-//			//rectangle(testpic, grid_rect, Scalar(0, 255, 0), 0);
-//			counter++;
-//			cout << "x: " << x << endl;
-//			cout << "y: " << y << endl;
-//			/// <summary>
-//			///  buraya segmentAI fonksiyonu gelecek
-//			/// </summary>
-//			/// <param name="src"></param>
-//			/// <param name="dst"></param>
-//			/// <param name="prefs"></param>
-//			/// <returns></returns>
-//			if (x == 0) {
-//				previousGrid = inputImage(grid_rect);
-//			}
-//			else if (x != 0) {
-//				hconcat(previousGrid, inputImage(grid_rect), wholeImageHConcat);
-//				previousGrid = wholeImageHConcat;
-//				cout << "wholeImage:" << wholeImageHConcat.cols << endl;
-//				if (wholeImageHConcat.cols == inputImage.cols)
-//				{
-//					vCells.push_back(wholeImageHConcat);
-//				}
-//			}
-//			//imwrite("grid" + to_string(counter) + ".png", inputImage(grid_rect));
-//			//waitKey();
-//		}
-//	}
-//	vconcat(vCells[0], vCells[1], wholeImageVConcat);
-//	vconcat(wholeImageVConcat, vCells[2], wholeImageVConcat);
-//
-//
-//	imwrite("analyzedInputImage.png", wholeImageVConcat);  
-////#pragma endregion grid analysis for deeplearning end
+#pragma region classify images as seedling or not
+	float probablity;
+	int seedling_label = 0;
+	int predicted_label = classifyImage(src, probablity);
+	cout << "probablity" << probablity << endl;
+	if (predicted_label == seedling_label)
+	{
+		cout << "The sample consists seedling(s)" << endl;
+	}
+	else
+	{
+		cout << "The sample not consist any seedling(s)" << endl;
+	}
+#pragma endregion
 
-	
-	Mat rgbColorSpace, labColorSpace, srcMedianF, srcGausF, filteredImage;
-	cvtColor(src, rgbColorSpace, COLOR_RGBA2RGB);
-	cvtColor(rgbColorSpace, labColorSpace, COLOR_RGB2Lab);
+	//Mat rgbColorSpace, labColorSpace;
+	//cvtColor(src, rgbColorSpace, COLOR_RGBA2RGB);
+	//cvtColor(rgbColorSpace, labColorSpace, COLOR_RGB2Lab);
 
-	Mat lab[3];
-	split(labColorSpace, lab);
-	src = lab[0];
+	//Mat lab[3];
+	//split(labColorSpace, lab);
+	//src = lab[0];
+	//
+	//Mat srcMedianF, srcGausF, filteredImage;
 
-	medianFilter(src, srcMedianF, 2.f);
-	GaussianBlur(srcMedianF, srcGausF, Size(5, 5), 1, 1);
+	//medianFilter(src, srcMedianF, 2.f);
+	//GaussianBlur(srcMedianF, srcGausF, Size(5, 5), 1, 1);
 
-	Mat thresholded_dst = srcGausF.clone();
+	//#pragma region grid analysis for deeplearning start
+
+	int width = src.cols;
+	int height = src.rows;
+	int GRID_SIZE = 256;
+	//int counter = -1;
+	Mat previousGrid, wholeImageHConcat, verticalPartImage1, wholeImageVConcat, image_out, filteredImage;
+	vector<Rect> mCells;
+	vector<Mat> vCells;
+	for (int y = 0; y <= height - GRID_SIZE; y += GRID_SIZE) {
+		for (int x = 0; x <= width - GRID_SIZE; x += GRID_SIZE) {
+			int k = x * y + x;
+			Rect grid_rect(x, y, GRID_SIZE, GRID_SIZE);
+			cout << grid_rect << endl;
+			mCells.push_back(grid_rect);
+			//rectangle(testpic, grid_rect, Scalar(0, 255, 0), 0);
+			//counter++;
+			image_out = seedlingAISegmentation(src(grid_rect));
+
+			if (x == 0) {
+				previousGrid = image_out;
+			}
+			else if (x != 0) {
+				hconcat(previousGrid, image_out, wholeImageHConcat);
+				previousGrid = wholeImageHConcat;
+				//cout << "wholeImage:" << wholeImageHConcat.cols << endl;
+				if (wholeImageHConcat.cols == src.cols)
+				{
+					vCells.push_back(wholeImageHConcat);
+				}
+			}
+			//imwrite("grid" + to_string(counter) + ".png", inputImage(grid_rect));
+			//waitKey();
+		}
+	}
+	vconcat(vCells[0], vCells[1], wholeImageVConcat);
+	vconcat(wholeImageVConcat, vCells[2], wholeImageVConcat);
+
+
+	//imwrite("analyzedInputImage.png", wholeImageVConcat);
+	//#pragma endregion grid analysis for deeplearning end
+
+
+	Mat thresholded_dst = ~wholeImageVConcat.clone();
 	Mat thresholded_dst_new = Mat::zeros(src.size(), CV_8UC1);
-	autoThreshold(thresholded_dst, ThresholdMethod::Otsu);
-	thresholded_dst = ~thresholded_dst;
+	//autoThreshold(thresholded_dst, ThresholdMethod::Otsu);
+	//thresholded_dst = ~thresholded_dst;
 	//watershedProcess(thresholded_dst, thresholded_dst, 41);
 	fillHoles(thresholded_dst);
-	Mat thresholded_labels, thresholded_stats, thresholded_centroids, thresholded_doubleStats;
-	// | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES
-	int count = analyzeParticles(thresholded_dst, thresholded_labels, thresholded_stats, thresholded_centroids, thresholded_doubleStats, ParticleAnalyzer::FOUR_CONNECTED, 20);
+	//Mat thresholded_labels, thresholded_stats, thresholded_centroids, thresholded_doubleStats;
+	//// | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES
+	//int count = analyzeParticles(thresholded_dst, thresholded_labels, thresholded_stats, thresholded_centroids, thresholded_doubleStats, ParticleAnalyzer::FOUR_CONNECTED, 10000);
 
-	thresholded_dst = thresholded_labels > 0;
+	//thresholded_dst = thresholded_labels > 0;
 	//crop
 	//int topStart = 150, bottom_margin = 150;
 	int topStart = 1, bottom_margin = 70; //70 value for new image template
@@ -126,7 +140,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	Mat filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, roiMask, filteredImageNewEroded, filteredImageNewDilated;
 	//watershedProcess(filteredImage, filteredImageNew, 41);
 
-	analyzeParticles(filteredImage, filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, ParticleAnalyzer::FOUR_CONNECTED | ParticleAnalyzer::EXCLUDE_EDGE_PARTICLES, 10000);
+	analyzeParticles(filteredImage, filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, ParticleAnalyzer::FOUR_CONNECTED, 10000);
 
 	Mat filteredImageNew = filteredImage_labels > 0;
 	Mat filteredImageLabelsClone = filteredImageNew.clone();
@@ -529,7 +543,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 	cout << "calibrationValueBH: " << (ceil((calibrationValueBH * 1000)) / 1000) << endl;
 	cout << "calibrationValueBT: " << (ceil((calibrationValueBT * 1000)) / 1000) << endl;
 	cout << "end for now: " << endl;
-	
+
 	return result;
 }
 
@@ -704,57 +718,96 @@ void checkComputeDirection(bool& isLeftOriented, bool& isRightOriented, int x, i
 	directionUpdated = true;
 };
 
-//
-//void seedlingAISegmentation()
-//{
-//	Mat image;
-//	image = imread("train_458.png", CV_LOAD_IMAGE_COLOR);
-//
-//	//we have to split the interleaved channels
-//	cv::Mat bgr[3]; // destination array
-//	cv::split(image, bgr);
-//	cv::Mat channelsConcatenated;
-//	vconcat(bgr[2], bgr[1], channelsConcatenated);
-//	vconcat(channelsConcatenated, bgr[0], channelsConcatenated);
-//
-//	cv::Mat channelsConcatenatedFloat;
-//	channelsConcatenated.convertTo(channelsConcatenatedFloat, CV_32FC3, 1 / 255.0);
-//
-//	std::vector<int64_t> dims{ 1, static_cast<int64_t>(image.channels()),
-//		static_cast<int64_t>(image.rows),
-//		static_cast<int64_t>(image.cols) };
-//
-//	torch::TensorOptions options(torch::kFloat);
-//
-//	// Deserialize the ScriptModule from a file using torch::jit::load().
-//	torch::jit::script::Module module;
-//	module = torch::jit::load("seedling_segmentation.pt");
-//	module.to(torch::kCPU);
-//
-//	torch::Tensor tensor_image = torch::from_blob(channelsConcatenatedFloat.data, at::IntList(dims), options);
-//	tensor_image = tensor_image.toType(torch::kFloat);
-//
-//	std::ofstream file;
-//	file.open("tensor_image.txt");
-//	file << tensor_image;
-//	file.close();
-//
-//	torch::Tensor result = module.forward({ tensor_image.to(torch::kCPU) }).toTensor();
-//
-//	std::ofstream file2;
-//	file2.open("result.txt");
-//
-//	file2 << result;
-//
-//	file2.close();
-//
-//	result = result.detach().squeeze().cpu();
-//	result = torch::sigmoid(result);
-//
-//	cv::Mat img_out(image.rows, image.cols, CV_32F, result.data_ptr<float>());
-//
-//	//img_out = img_out * 255.0;
-//	img_out = img_out > 0.5;
-//
-//	cv::imwrite("_result.png", img_out);
-//}
+
+Mat seedlingAISegmentation(Mat src)
+{
+	cv::Mat bgr[3]; // destination array
+	cv::split(src, bgr);
+	cv::Mat channelsConcatenated;
+	vconcat(bgr[2], bgr[1], channelsConcatenated);
+	vconcat(channelsConcatenated, bgr[0], channelsConcatenated);
+
+	cv::Mat channelsConcatenatedFloat;
+	channelsConcatenated.convertTo(channelsConcatenatedFloat, CV_32FC3, 1 / 255.0);
+
+	std::vector<int64_t> dims{ 1, static_cast<int64_t>(src.channels()),
+		static_cast<int64_t>(src.rows),
+		static_cast<int64_t>(src.cols) };
+
+	torch::TensorOptions options(torch::kFloat);
+
+	// Deserialize the ScriptModule from a file using torch::jit::load().
+	torch::jit::script::Module module;
+	module = torch::jit::load("C:/Users/HTG_SOFTWARE/Desktop/seedlingDetector/seedlingDetectAndSegment/seedling_segmentation.pt");
+	module.to(torch::kCPU);
+
+	torch::Tensor tensor_image = torch::from_blob(channelsConcatenatedFloat.data, at::IntList(dims), options);
+	tensor_image = tensor_image.toType(torch::kFloat);
+
+	std::ofstream file;
+	file.open("tensor_image.txt");
+	file << tensor_image;
+	file.close();
+
+	torch::Tensor result = module.forward({ tensor_image.to(torch::kCPU) }).toTensor();
+
+	std::ofstream file2;
+	file2.open("result.txt");
+
+	file2 << result;
+
+	file2.close();
+
+	result = result.detach().squeeze().cpu();
+	result = torch::sigmoid(result);
+
+	cv::Mat img_out(src.rows, src.cols, CV_32F, result.data_ptr<float>());
+
+	img_out = img_out > 0.5;
+
+	return img_out;
+}
+
+
+int classifyImage(Mat src, float& probablity)
+{
+	int scaleWidth = 224;
+	int scaleHeight = 224;
+
+	torch::Tensor tensor_image;
+	
+	resize(src, src, cv::Size(scaleWidth, scaleHeight), cv::INTER_LINEAR); // ? maybe
+	
+	tensor_image = torch::from_blob(src.data, { src.rows, src.cols,3 }, torch::kByte).to(torch::kCPU);//hwc
+	 //ToTensor
+	tensor_image = tensor_image.permute({ 2,0,1 });//chw
+	tensor_image = tensor_image.toType(torch::kFloat);
+	tensor_image = tensor_image.div(255.0);
+	//normalize
+	tensor_image[0] = tensor_image[0].sub_(0.485).div_(0.229);
+	tensor_image[1] = tensor_image[1].sub_(0.456).div_(0.224);
+	tensor_image[2] = tensor_image[2].sub_(0.406).div_(0.225);
+
+	tensor_image = tensor_image.unsqueeze(0);
+	std::vector<torch::jit::IValue> inputs;
+	inputs.push_back(tensor_image);
+
+	torch::jit::script::Module module;
+	module = torch::jit::load("C:/Users/HTG_SOFTWARE/Desktop/seedlingDetector/seedlingDetectAndSegment/seedling_classifier.pt");
+	module.to(torch::kCPU);
+	
+	torch::Tensor result = module.forward({ inputs }).toTensor();
+
+	auto results = result.sort(-1, true);
+	auto indexs = std::get<1>(results)[0];
+
+	auto predictedLabel = indexs[0].item<int>();
+
+	auto softmaxs = std::get<0>(results)[0].softmax(0);
+	probablity = softmaxs[0].item<float>() * 100.0f;
+
+	//std::cout << "predictedLabel: " << predictedLabel << std::endl;
+	//std::cout << "with probability:  " << softmaxs[0].item<float>() * 100.0f << "%" << std::endl;
+
+	return predictedLabel;
+}
