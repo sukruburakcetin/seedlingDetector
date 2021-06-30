@@ -16,40 +16,40 @@ int main(int argc, const char* argv[])
 	image = imread("train_458.png", CV_LOAD_IMAGE_COLOR);
 
 
-	cv::Mat bgr[3]; // destination array
-	cv::split(image, bgr);
-	cv::Mat channelsConcatenated;
-	vconcat(bgr[2], bgr[1], channelsConcatenated);
-	vconcat(channelsConcatenated, bgr[0], channelsConcatenated);
+	//cv::Mat bgr[3]; // destination array
+	//cv::split(image, bgr);
+	//cv::Mat channelsConcatenated;
+	//vconcat(bgr[2], bgr[1], channelsConcatenated);
+	//vconcat(channelsConcatenated, bgr[0], channelsConcatenated);
 
-	cv::Mat channelsConcatenatedFloat;
-	channelsConcatenated.convertTo(channelsConcatenatedFloat, CV_32FC3, 1 / 255.0);
-
-
-	std::vector<int64_t> dims{ 1, static_cast<int64_t>(image.channels()),
-		static_cast<int64_t>(image.rows),
-		static_cast<int64_t>(image.cols) };
-
-	torch::TensorOptions options(torch::kFloat);
+	//cv::Mat channelsConcatenatedFloat;
+	//channelsConcatenated.convertTo(channelsConcatenatedFloat, CV_32FC3, 1 / 255.0);
 
 
-	torch::Tensor tensor_image = torch::from_blob(channelsConcatenatedFloat.data, at::IntList(dims), options);
-	tensor_image = tensor_image.toType(torch::kFloat);
+	//std::vector<int64_t> dims{ 1, static_cast<int64_t>(image.channels()),
+	//	static_cast<int64_t>(image.rows),
+	//	static_cast<int64_t>(image.cols) };
+
+	//torch::TensorOptions options(torch::kFloat);
 
 
-	torch::jit::script::Module module;
-	module = torch::jit::load("seedling_segmentation.pt");
-	module.to(torch::kCUDA);
+	//torch::Tensor tensor_image = torch::from_blob(channelsConcatenatedFloat.data, at::IntList(dims), options);
+	//tensor_image = tensor_image.toType(torch::kFloat);
 
-	torch::Tensor result = module.forward({ tensor_image.to(torch::kCUDA) }).toTensor();
 
-	result = result.squeeze().detach().permute({ 1, 2, 0 });
-	result = result.mul(255).clamp(0, 255).to(torch::kU8);
-	result = result.to(torch::kCPU);
-	cv::Mat img_out(image.rows, image.cols, CV_8UC1);
-	std::memcpy((void*)img_out.data, result.data_ptr(), sizeof(torch::kU8) * result.numel());
+	//torch::jit::script::Module module;
+	//module = torch::jit::load("seedling_segmentation.pt");
+	//module.to(torch::kCUDA);
 
-	cout << "asd << " << endl;
+	//torch::Tensor result = module.forward({ tensor_image.to(torch::kCUDA) }).toTensor();
+
+	//result = result.squeeze().detach().permute({ 1, 2, 0 });
+	//result = result.mul(255).clamp(0, 255).to(torch::kU8);
+	//result = result.to(torch::kCPU);
+	//cv::Mat img_out(image.rows, image.cols, CV_8UC1);
+	//std::memcpy((void*)img_out.data, result.data_ptr(), sizeof(torch::kU8) * result.numel());
+
+	//cout << "asd << " << endl;
 
 	//222222222222222222222222222222222222222222222222222222222222
 
@@ -115,50 +115,50 @@ int main(int argc, const char* argv[])
 	//#pragma endregion
 
 	//	//we have to split the interleaved channels
-	//	cv::Mat bgr[3]; // destination array
-	//	cv::split(image, bgr);
-	//	cv::Mat channelsConcatenated;
-	//	vconcat(bgr[2], bgr[1], channelsConcatenated);
-	//	vconcat(channelsConcatenated, bgr[0], channelsConcatenated);
+		cv::Mat bgr[3]; // destination array
+		cv::split(image, bgr);
+		cv::Mat channelsConcatenated;
+		vconcat(bgr[2], bgr[1], channelsConcatenated);
+		vconcat(channelsConcatenated, bgr[0], channelsConcatenated);
 
-	//	cv::Mat channelsConcatenatedFloat;
-	//	channelsConcatenated.convertTo(channelsConcatenatedFloat, CV_32FC3, 1 / 255.0);
+		cv::Mat channelsConcatenatedFloat;
+		channelsConcatenated.convertTo(channelsConcatenatedFloat, CV_32FC3, 1 / 255.0);
 
-	//	std::vector<int64_t> dims{ 1, static_cast<int64_t>(image.channels()),
-	//		static_cast<int64_t>(image.rows),
-	//		static_cast<int64_t>(image.cols) };
+		std::vector<int64_t> dims{ 1, static_cast<int64_t>(image.channels()),
+			static_cast<int64_t>(image.rows),
+			static_cast<int64_t>(image.cols) };
 
-	//	torch::TensorOptions options(torch::kFloat);
+		torch::TensorOptions options(torch::kFloat);
 
-	//	// Deserialize the ScriptModule from a file using torch::jit::load().
-	//	torch::jit::script::Module module;
-	//	module = torch::jit::load("seedling_segmentation.pt");
-	//	module.to(torch::kCUDA);
+		// Deserialize the ScriptModule from a file using torch::jit::load().
+		torch::jit::script::Module module;
+		module = torch::jit::load("seedling_segmentation.pt");
+		module.to(torch::kCPU);
 
-	//	torch::Tensor tensor_image = torch::from_blob(channelsConcatenatedFloat.data, at::IntList(dims), options);
-	//	tensor_image = tensor_image.toType(torch::kFloat);
+		torch::Tensor tensor_image = torch::from_blob(channelsConcatenatedFloat.data, at::IntList(dims), options);
+		tensor_image = tensor_image.toType(torch::kFloat);
 
-	//	std::ofstream file;
-	//	file.open("tensor_image.txt");
-	//	file << tensor_image;
-	//	file.close();
+		std::ofstream file;
+		file.open("tensor_image.txt");
+		file << tensor_image;
+		file.close();
 
-	//	torch::Tensor result = module.forward({ tensor_image.to(torch::kCUDA) }).toTensor();
+		torch::Tensor result = module.forward({ tensor_image.to(torch::kCPU) }).toTensor();
 
-	//	std::ofstream file2;
-	//	file2.open("result.txt");
+		std::ofstream file2;
+		file2.open("result.txt");
 
-	//	file2 << result;
+		file2 << result;
 
-	//	file2.close();
+		file2.close();
 
-	//	result = result.detach().squeeze().cpu();
-	//	result = torch::sigmoid(result);
+		result = result.detach().squeeze().cpu();
+		result = torch::sigmoid(result);
 
-	//	cv::Mat img_out(image.rows, image.cols, CV_32F, result.data_ptr<float>());
+		cv::Mat img_out(image.rows, image.cols, CV_32F, result.data_ptr<float>());
 
-	//	//img_out = img_out * 255.0;
-	//	img_out = img_out > 0.5;
+		//img_out = img_out * 255.0;
+		img_out = img_out > 0.5;
 
-	//	cv::imwrite("_result.png", img_out);
+		cv::imwrite("_result.png", img_out);
 }
