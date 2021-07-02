@@ -70,6 +70,7 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\seedlingDetectAndSegment\rapidJson.props" />
     <Import Project="..\testPytorch\boost.props" />
     <Import Project="..\testPytorch\torch.props" />
     <Import Project="..\testPytorch\CUDA.props" />
@@ -157,6 +158,7 @@
     <ClCompile Include="WatershedCustom.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AbstractResult.hpp" />
     <ClInclude Include="AutoThreshold.hpp" />
     <ClInclude Include="ColourDeconvolution.hpp" />
     <ClInclude Include="FillHoles.hpp" />
