@@ -2,14 +2,13 @@
 #include <iostream>
 #include <opencv2/core.hpp>
 #include "seedlingDetector.hpp"
-
-#include <opencv2/imgcodecs.hpp>
 #include <torch/script.h> // One-stop header.
 #include <opencv2/imgproc.hpp>
-#include "AutoThreshold.hpp"
 #include "ParticleAnalyzer.hpp"
-#include "RankFilters.hpp"
 #include "FillHoles.hpp"
+#include <opencv2/imgcodecs.hpp>
+#include "RankFilters.hpp"
+#include "AutoThreshold.hpp"
 
 using namespace std;
 using namespace cv;
