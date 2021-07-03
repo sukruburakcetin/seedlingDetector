@@ -1,5 +1,9 @@
+#include <fstream>
 #include <rapidjson/document.h>
 #include "AbstractResult.hpp"
+#include "rapidjson/rapidjson.h"
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 
 struct seedlingRoiResult
@@ -31,7 +35,21 @@ public:
 	int averageTotalBodyThickness;
 	int averageTotalLeafLength;
 
-	rapidjson::Document getJsonDoc() override
+
+	seedlingDetectorResult& operator+=(const seedlingDetectorResult& right) {
+		this->seedlingCount += right.seedlingCount;
+		this->totalBodyHeight += right.totalBodyHeight;
+		this->totalBodyThickness += right.totalBodyThickness;
+		this->totalLeafLength += right.totalLeafLength;
+		this->totalSeedlingCount += right.totalSeedlingCount;
+		this->averageTotalBodyHeight += right.averageTotalBodyHeight;
+		this->averageTotalBodyThickness += right.averageTotalBodyThickness;
+		this->averageTotalLeafLength += right.averageTotalLeafLength;
+		return *this;
+	}
+
+	
+	/*rapidjson::Document getJsonDoc() override
 	{
 		rapidjson::Document res;
 		res.SetObject();
@@ -65,8 +83,9 @@ public:
 		res.AddMember("averageTotalBodyHeight", averageTotalBodyHeight, allocator);
 		res.AddMember("averageTotalBodyThickness", averageTotalBodyThickness, allocator);
 		res.AddMember("averageTotalLeafLength", averageTotalLeafLength, allocator);
+		
 		return res;
-	}
+	}*/
 
 };
 

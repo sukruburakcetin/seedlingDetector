@@ -40,7 +40,7 @@ float realLeafLength = 20.00;
 
 seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedlingDetectorPreferences& prefs)
 {
-	seedlingDetectorResult result;
+	seedlingDetectorResult res;
 	
 	try {
 		int seedlingCount = 0, totalBodyThickness = 0, totalBodyHeight = 0, totalLeafLenght = 0, totalSeedlingCount = 0;
@@ -86,7 +86,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 			for (int x = 0; x <= width - GRID_SIZE; x += GRID_SIZE) {
 				int k = x * y + x;
 				Rect grid_rect(x, y, GRID_SIZE, GRID_SIZE);
-				cout << grid_rect << endl;
+				//cout << grid_rect << endl;
 				mCells.push_back(grid_rect);
 				//rectangle(testpic, grid_rect, Scalar(0, 255, 0), 0);
 				//counter++;
@@ -144,7 +144,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		//watershedProcess(filteredImage, filteredImageNew, 41);
 
 		seedlingCount = analyzeParticles(filteredImage, filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, ParticleAnalyzer::FOUR_CONNECTED, 10000);
-
+		seedlingCount = seedlingCount - 1;
 		Mat filteredImageNew = filteredImage_labels > 0;
 		Mat filteredImageLabelsClone = filteredImageNew.clone();
 
@@ -546,20 +546,17 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		cout << "calibrationValueBH: " << (ceil((calibrationValueBH * 1000)) / 1000) << endl;
 		cout << "calibrationValueBT: " << (ceil((calibrationValueBT * 1000)) / 1000) << endl;
 
-		//result.roiResults.push_back(seedlingRoiResult(bodyThickness, bodyHeight, leafLength, seedlingCount));
-
-		totalBodyThickness += bodyThickness;
-		totalBodyHeight += bodyHeight;
-		totalLeafLenght += leafLength;
-		totalSeedlingCount += seedlingCount;
+		res.roiResults.push_back(seedlingRoiResult(bodyThickness, bodyHeight, leafLength, seedlingCount));
 		
+		cout << "" << endl;
 		cout << "Iterating to next file... " << endl;
+		cout << "" << endl;
 	}
 	catch(std::exception& e)
 	{
 		std::cout << "Process Tile Exception: " << e.what() << endl;
 	}
-	return result;
+	return res;
 }
 
 auto determineThresholdSeedlingToLeaf(int y, int x, int& heightSeedling,
@@ -753,25 +750,25 @@ Mat seedlingAISegmentation(Mat src)
 
 	// Deserialize the ScriptModule from a file using torch::jit::load().
 	torch::jit::script::Module module;
-	module = torch::jit::load("C:/Users/HTG_SOFTWARE/Desktop/seedlingDetector/seedlingDetectAndSegment/seedling_segmentation.pt");
+	module = torch::jit::load("seedling_segmentation.pt");
 	module.to(torch::kCPU);
 
 	torch::Tensor tensor_image = torch::from_blob(channelsConcatenatedFloat.data, at::IntList(dims), options);
 	tensor_image = tensor_image.toType(torch::kFloat);
 
-	std::ofstream file;
+	/*std::ofstream file;
 	file.open("tensor_image.txt");
 	file << tensor_image;
-	file.close();
+	file.close();*/
 
 	torch::Tensor result = module.forward({ tensor_image.to(torch::kCPU) }).toTensor();
 
-	std::ofstream file2;
+	/*std::ofstream file2;
 	file2.open("result.txt");
 
 	file2 << result;
 
-	file2.close();
+	file2.close();*/
 
 	result = result.detach().squeeze().cpu();
 	result = torch::sigmoid(result);
@@ -808,7 +805,7 @@ int classifyImage(Mat src, float& probablity)
 	inputs.push_back(tensor_image);
 
 	torch::jit::script::Module module;
-	module = torch::jit::load("C:/Users/HTG_SOFTWARE/Desktop/seedlingDetector/seedlingDetectAndSegment/seedling_classifier.pt");
+	module = torch::jit::load("seedling_classifier.pt");
 	module.to(torch::kCPU);
 
 	torch::Tensor result = module.forward({ inputs }).toTensor();

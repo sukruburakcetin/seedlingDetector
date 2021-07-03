@@ -11,9 +11,11 @@ namespace fs = boost::filesystem;
 int main()
 {
     std::cout << "------------------------------- Seedling Classifier ----------------------------------\n";
+	seedlingDetectorResult finalResult;
 
 	std::vector<cv::Mat> imageVec;
-	fs::path p("C:\\Users\\HTG_SOFTWARE\\Desktop\\mixed\\");
+	int index = 0;
+	fs::path p("C:\\Users\\BURAK\\Desktop\\mixed\\");
 	fs::directory_iterator end_itr;
 	// cycle through the directory
 	for (fs::directory_iterator itr(p); itr != end_itr; ++itr) {
@@ -32,8 +34,25 @@ int main()
 
 			seedlingDetectorPreferences prefs;
 			const seedlingDetectorResult res = seedlingDetector(src, dst, prefs);
-		}
+
+			finalResult.totalSeedlingCount += res.roiResults[index].seedlingCount;
+			finalResult.totalBodyHeight += res.roiResults[index].bodyHeight;
+			finalResult.totalBodyThickness += res.roiResults[index].bodyThickness;
+			finalResult.totalLeafLength += res.roiResults[index].leafLength;
+
+			finalResult.averageTotalBodyHeight = (finalResult.totalBodyHeight) / (finalResult.totalSeedlingCount);
+			finalResult.averageTotalBodyThickness = (finalResult.totalBodyThickness) / (finalResult.totalSeedlingCount);
+			finalResult.averageTotalLeafLength  = (finalResult.totalLeafLength) / (finalResult.totalSeedlingCount);
+		 }
 	}
+	cout << "totalSeedlingCount: " << finalResult.totalSeedlingCount << endl;
+	cout << "totalBodyHeight: " << finalResult.totalBodyHeight << endl;
+	cout << "totalBodyThickness: " << finalResult.totalBodyThickness << endl;
+	cout << "totalLeafLength: " << finalResult.totalLeafLength << endl;
+	
+	cout << "averageTotalBodyHeight: " << finalResult.averageTotalBodyHeight << endl;
+	cout << "averageTotalBodyThickness: " << finalResult.averageTotalBodyThickness << endl;
+	cout << "averageTotalLeafLength: " << finalResult.averageTotalLeafLength << endl;
 	//string image_path = "C:/IMG_3891.png";
 	//string image_path = "C:/4.png";
 	//Mat src = imread(image_path, IMREAD_COLOR);
