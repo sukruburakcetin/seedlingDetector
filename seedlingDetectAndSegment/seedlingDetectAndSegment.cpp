@@ -10,12 +10,12 @@ namespace fs = boost::filesystem;
 
 int main()
 {
-    std::cout << "------------------------------- Seedling Classifier ----------------------------------\n";
+	std::cout << "------------------------------- Seedling Classifier ----------------------------------\n";
 	seedlingDetectorResult finalResult;
-
+	bool continueTocalculateScore = false;
 	std::vector<cv::Mat> imageVec;
 	int index = 0;
-	fs::path p("C:\\Users\\BURAK\\Desktop\\mixed\\");
+	fs::path p("C:\\Users\\\HTG_SOFTWARE\\Desktop\\mixed\\");
 	fs::directory_iterator end_itr;
 	// cycle through the directory
 	for (fs::directory_iterator itr(p); itr != end_itr; ++itr) {
@@ -33,23 +33,29 @@ int main()
 			Mat dst;
 
 			seedlingDetectorPreferences prefs;
-			const seedlingDetectorResult res = seedlingDetector(src, dst, prefs);
+			const seedlingDetectorResult res = seedlingDetector(src, dst, prefs, continueTocalculateScore);
 
-			finalResult.totalSeedlingCount += res.roiResults[index].seedlingCount;
-			finalResult.totalBodyHeight += res.roiResults[index].bodyHeight;
-			finalResult.totalBodyThickness += res.roiResults[index].bodyThickness;
-			finalResult.totalLeafLength += res.roiResults[index].leafLength;
 
-			finalResult.averageTotalBodyHeight = (finalResult.totalBodyHeight) / (finalResult.totalSeedlingCount);
-			finalResult.averageTotalBodyThickness = (finalResult.totalBodyThickness) / (finalResult.totalSeedlingCount);
-			finalResult.averageTotalLeafLength  = (finalResult.totalLeafLength) / (finalResult.totalSeedlingCount);
-		 }
+			if (continueTocalculateScore == true ) {
+				finalResult.totalSeedlingCount += res.roiResults[index].seedlingCount;
+				finalResult.totalBodyHeight += res.roiResults[index].bodyHeight;
+				finalResult.totalBodyThickness += res.roiResults[index].bodyThickness;
+				finalResult.totalLeafLength += res.roiResults[index].leafLength;
+				finalResult.averageTotalBodyHeight = (finalResult.totalBodyHeight) / (finalResult.totalSeedlingCount);
+				finalResult.averageTotalBodyThickness = (finalResult.totalBodyThickness) / (finalResult.totalSeedlingCount);
+				finalResult.averageTotalLeafLength = (finalResult.totalLeafLength) / (finalResult.totalSeedlingCount);
+			}
+			else
+			{
+				cout << "Skipping file because there is no seedling for the analysis! " << endl;
+			}
+		}
 	}
 	cout << "totalSeedlingCount: " << finalResult.totalSeedlingCount << endl;
 	cout << "totalBodyHeight: " << finalResult.totalBodyHeight << endl;
 	cout << "totalBodyThickness: " << finalResult.totalBodyThickness << endl;
 	cout << "totalLeafLength: " << finalResult.totalLeafLength << endl;
-	
+
 	cout << "averageTotalBodyHeight: " << finalResult.averageTotalBodyHeight << endl;
 	cout << "averageTotalBodyThickness: " << finalResult.averageTotalBodyThickness << endl;
 	cout << "averageTotalLeafLength: " << finalResult.averageTotalLeafLength << endl;

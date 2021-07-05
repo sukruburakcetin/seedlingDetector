@@ -2,13 +2,14 @@
 #include <iostream>
 #include <opencv2/core.hpp>
 #include "seedlingDetector.hpp"
+
+#include <opencv2/imgcodecs.hpp>
 #include <torch/script.h> // One-stop header.
 #include <opencv2/imgproc.hpp>
-#include "ParticleAnalyzer.hpp"
-#include "FillHoles.hpp"
-#include <opencv2/imgcodecs.hpp>
-#include "RankFilters.hpp"
 #include "AutoThreshold.hpp"
+#include "ParticleAnalyzer.hpp"
+#include "RankFilters.hpp"
+#include "FillHoles.hpp"
 
 using namespace std;
 using namespace cv;
@@ -38,10 +39,10 @@ float realBodyThickness = 0.69;
 float realBodyHeight = 30.00;
 float realLeafLength = 20.00;
 
-seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedlingDetectorPreferences& prefs)
+seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedlingDetectorPreferences& prefs, bool& continueTocalculateScore)
 {
-	seedlingDetectorResult res;
-	
+	seedlingDetectorResult result;
+	continueTocalculateScore = false;
 	try {
 		int seedlingCount = 0, totalBodyThickness = 0, totalBodyHeight = 0, totalLeafLenght = 0, totalSeedlingCount = 0;
 #pragma region classify images as seedling or not
@@ -53,6 +54,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		if (predicted_label == seedling_label)
 		{
 			cout << "The sample consists seedling(s)" << endl;
+			continueTocalculateScore = true;
 		}
 		else
 		{
@@ -86,7 +88,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 			for (int x = 0; x <= width - GRID_SIZE; x += GRID_SIZE) {
 				int k = x * y + x;
 				Rect grid_rect(x, y, GRID_SIZE, GRID_SIZE);
-				//cout << grid_rect << endl;
+				cout << grid_rect << endl;
 				mCells.push_back(grid_rect);
 				//rectangle(testpic, grid_rect, Scalar(0, 255, 0), 0);
 				//counter++;
@@ -144,7 +146,8 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		//watershedProcess(filteredImage, filteredImageNew, 41);
 
 		seedlingCount = analyzeParticles(filteredImage, filteredImage_labels, filteredImage_stats, filteredImage_centroids, filteredImage_doubleStats, ParticleAnalyzer::FOUR_CONNECTED, 10000);
-		seedlingCount = seedlingCount - 1;
+		seedlingCount = seedlingCount - 1;// substraction background in the analzyer
+
 		Mat filteredImageNew = filteredImage_labels > 0;
 		Mat filteredImageLabelsClone = filteredImageNew.clone();
 
@@ -546,17 +549,22 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 		cout << "calibrationValueBH: " << (ceil((calibrationValueBH * 1000)) / 1000) << endl;
 		cout << "calibrationValueBT: " << (ceil((calibrationValueBT * 1000)) / 1000) << endl;
 
-		res.roiResults.push_back(seedlingRoiResult(bodyThickness, bodyHeight, leafLength, seedlingCount));
-		
-		cout << "" << endl;
+		cout << "seedlingCount: " << seedlingCount << endl;
+		cout << "predicted_label: " << predicted_label << endl;
+		result.roiResults.push_back(seedlingRoiResult(bodyThickness, bodyHeight, leafLength, seedlingCount, predicted_label));
+
+		//totalBodyThickness += bodyThickness;
+		//totalBodyHeight += bodyHeight;
+		//totalLeafLenght += leafLength;
+		//totalSeedlingCount += seedlingCount;
+
 		cout << "Iterating to next file... " << endl;
-		cout << "" << endl;
 	}
-	catch(std::exception& e)
+	catch (std::exception& e)
 	{
 		std::cout << "Process Tile Exception: " << e.what() << endl;
 	}
-	return res;
+	return result;
 }
 
 auto determineThresholdSeedlingToLeaf(int y, int x, int& heightSeedling,
@@ -750,25 +758,25 @@ Mat seedlingAISegmentation(Mat src)
 
 	// Deserialize the ScriptModule from a file using torch::jit::load().
 	torch::jit::script::Module module;
-	module = torch::jit::load("seedling_segmentation.pt");
+	module = torch::jit::load("C:/Users/HTG_SOFTWARE/Desktop/seedlingDetector/seedlingDetectAndSegment/seedling_segmentation.pt");
 	module.to(torch::kCPU);
 
 	torch::Tensor tensor_image = torch::from_blob(channelsConcatenatedFloat.data, at::IntList(dims), options);
 	tensor_image = tensor_image.toType(torch::kFloat);
 
-	/*std::ofstream file;
-	file.open("tensor_image.txt");
-	file << tensor_image;
-	file.close();*/
+	//std::ofstream file;
+	//file.open("tensor_image.txt");
+	//file << tensor_image;
+	//file.close();
 
 	torch::Tensor result = module.forward({ tensor_image.to(torch::kCPU) }).toTensor();
 
-	/*std::ofstream file2;
-	file2.open("result.txt");
+	//std::ofstream file2;
+	//file2.open("result.txt");
 
-	file2 << result;
+	//file2 << result;
 
-	file2.close();*/
+	//file2.close();
 
 	result = result.detach().squeeze().cpu();
 	result = torch::sigmoid(result);
@@ -805,7 +813,7 @@ int classifyImage(Mat src, float& probablity)
 	inputs.push_back(tensor_image);
 
 	torch::jit::script::Module module;
-	module = torch::jit::load("seedling_classifier.pt");
+	module = torch::jit::load("C:/Users/HTG_SOFTWARE/Desktop/seedlingDetector/seedlingDetectAndSegment/seedling_classifier.pt");
 	module.to(torch::kCPU);
 
 	torch::Tensor result = module.forward({ inputs }).toTensor();

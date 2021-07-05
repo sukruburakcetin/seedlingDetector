@@ -12,8 +12,9 @@ struct seedlingRoiResult
 	int bodyHeight;
 	int leafLength;
 	int seedlingCount;
-	seedlingRoiResult(int bodyThickness = 0, int bodyHeight = 0, int leafLength = 0, int seedlingCount = 0) :
-		bodyThickness(bodyThickness), bodyHeight(bodyHeight), leafLength(leafLength), seedlingCount(seedlingCount)
+	int predict_label;
+	seedlingRoiResult(int bodyThickness = 0, int bodyHeight = 0, int leafLength = 0, int seedlingCount = 0, int predict_label = -1):
+		bodyThickness(bodyThickness), bodyHeight(bodyHeight), leafLength(leafLength), seedlingCount(seedlingCount), predict_label(predict_label)
 	{
 		//std::cerr << "Roi " << " x=" << x << " y=" << y << " h=" << h << " w=" << w << std::endl;
 	}
@@ -101,4 +102,4 @@ public:
 	int vector13 = 776;
 };
 
-seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedlingDetectorPreferences& prefs);
+seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedlingDetectorPreferences& prefs, bool& continueTocalculateScore);
