@@ -31,9 +31,6 @@ auto checkComputeDirection(bool& isLeftOriented, bool& isRightOriented, int x, i
 Mat seedlingAISegmentation(Mat src);
 int classifyImage(cv::Mat src, float& probablity);
 
-float realBodyThickness = 0.69;
-float realBodyHeight = 30.00;
-float realLeafLength = 20.00;
 
 seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedlingDetectorPreferences& prefs, bool& continueTocalculateScore)
 {
@@ -220,7 +217,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 
 			cvtColor(filteredImageNew, filteredImageNew_3D, COLOR_GRAY2RGB);
 			cvtColor(filteredImageNew, filteredImageNewFilled, COLOR_GRAY2RGB);
-
+			cout << "gecti" << endl;
 			// dye most intensive column's bottom point
 			circle(filteredImageNew_3D, Point(highestIntensityColumnIndex, lastWhitePixelInHighestIntensityLine), 0, Scalar(0, 255, 0), -1);
 
@@ -255,6 +252,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 				}
 			}
 
+
 			//cout << "sumWhitePixelToTheLeft: " << sumWhitePixelToTheLeft << endl;
 			for (int x = bottomStartPoint; x < bottomStartPoint + 1; x++)
 			{
@@ -273,6 +271,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 				}
 			}
 			//cout << "sumWhitePixelToTheRight: " << sumWhitePixelToTheRight << endl;
+	
 
 			/*calculates body thickness by adding left pixel count and right pixel count of the determined intensive point*/
 			float bodyThickness = sumWhitePixelToTheLeft + sumWhitePixelToTheRight;
@@ -297,6 +296,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 			int startSeedlingPoint = highestIntensityColumnIndex;
 
 			int currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(bottomStartPoint, highestIntensityColumnIndex);
+	
 
 			if (sumWhitePixelToTheLeft < sumWhitePixelToTheRight)
 			{
@@ -363,9 +363,10 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 			int bottomPartOfBodyHeight = (filteredImageNew.rows - bottom_margin) - lastWhitePixelInHighestIntensityLine + verticalMarginValueForBottomStartPoint;
 			//cout << "bottomPartOfBodyHeight: " << bottomPartOfBodyHeight << endl;
 			float bodyHeight = heightSeedlingSum + bottomPartOfBodyHeight;
-
+			cout << "gecti4" << endl;
 			int leftStartPixelPoint = 0, currentPixelValueAtCoordinateRight = 0, currentPixelValueAtCoordinateLeft = 0;
 			Mat filterRect;
+
 			if (isLeftOriented == true) {
 				leftStartPixelPoint = startSeedlingPoint + horizontalMarginValueForBottomStart;
 				Rect filterRegion(leftStartPixelPoint - (100 + bodyThickness), bottomStartPoint - (100 + bodyThickness), 100 + bodyThickness, 100 + bodyThickness);
@@ -388,6 +389,7 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 			findContours(filterRect, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, cv::Point());
 
 			Mat f5 = filterRect.clone();
+	
 
 			vector<vector<Point> > contours_poly(contours.size());
 			vector<Rect> boundRect(contours.size());
@@ -490,10 +492,10 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 						leftStartPixelPoint, finalPoint, leafLength, newX);
 					currentPixelValueAtCoordinate = filteredImageNew.at<uchar>(x - 1, BY);
 					if (currentPixelValueAtCoordinate == 0) {
-						cout << "x: " << x << endl;
-						cout << "BY: " << BY << endl;
+				/*		cout << "x: " << x << endl;
+						cout << "BY: " << BY << endl;*/
 						leafLength = sqrt((x - bottomStartPoint) * (x - bottomStartPoint) + (BY - leftStartPixelPoint) * (BY - leftStartPixelPoint));
-						cout << "leafLength_at_firstPeak: " << leafLength << endl;
+						cout << "LeafLength at First Peak: " << leafLength << endl;
 						newX = x;
 						break;
 					}
@@ -529,29 +531,20 @@ seedlingDetectorResult seedlingDetector(cv::Mat& src, cv::Mat& dst, const seedli
 					}
 				}
 			}
-
+			cout << "" << endl;
 			cout << "*****************_Calculated Results_(px)***************" << endl;
 			cout << "bodyThickness: " << bodyThickness << endl;
 			cout << "bodyHeight: " << bodyHeight << endl;
 			cout << "leafLength: " << leafLength << endl;
-			cout << "********************_Real Results_(mm)******************" << endl;
-			cout << "realBodyThickness: " << realBodyThickness << endl;
-			cout << "realBodyHeight: " << realBodyHeight << endl;
-			cout << "realLeafLength: " << realLeafLength << endl;
-
-			float calibrationValueLL = ((realLeafLength * 100) / (leafLength * 100));
-			float calibrationValueBH = ((realBodyHeight * 100) / (bodyHeight * 100));
-			float calibrationValueBT = ((realBodyThickness * 100) / (bodyThickness * 100));
-			cout << "****************_Calibration Values_******************" << endl;
-			cout << "calibrationValueLL: " << (ceil((calibrationValueLL * 1000)) / 1000) << endl;
-			cout << "calibrationValueBH: " << (ceil((calibrationValueBH * 1000)) / 1000) << endl;
-			cout << "calibrationValueBT: " << (ceil((calibrationValueBT * 1000)) / 1000) << endl;
-
+			cout << ""<< endl;
 			cout << "seedlingCount: " << seedlingCount << endl;
 			cout << "predicted_label: " << predicted_label << endl;
-			result.roiResults.push_back(seedlingRoiResult(bodyThickness, bodyHeight, leafLength, seedlingCount, predicted_label));
 
+			result.roiResults.push_back(seedlingRoiResult(bodyThickness, bodyHeight, leafLength, seedlingCount, predicted_label));
+			
+			cout << "" << endl;
 			cout << "Iterating to next file... " << endl;
+			cout << "" << endl;
 		}
 		else
 		{

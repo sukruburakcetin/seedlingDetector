@@ -8,6 +8,14 @@ using namespace cv;
 using namespace std;
 namespace fs = boost::filesystem;
 
+float specimenRealBodyThickness = 0.69;
+float specimenRealBodyHeight = 30.00;
+float specimenRealLeafLength = 20.00;
+
+float specimenPxBodyThickness = 24.00;
+float specimenPxBodyHeight = 437.00;
+float specimenPxLeafLength = 238.824;
+
 int main()
 {
 	std::cout << "------------------------------- Seedling Classifier ----------------------------------\n";
@@ -36,29 +44,63 @@ int main()
 			const seedlingDetectorResult res = seedlingDetector(src, dst, prefs, continueTocalculateScore);
 
 
-			if (continueTocalculateScore == true ) {
+			if (continueTocalculateScore == true && res.roiResults[index].leafLength >= 1 && res.roiResults[index].bodyThickness >= 1 && res.roiResults[index].bodyHeight >= 1 && res.roiResults[index].seedlingCount >= 1) {
 				finalResult.totalSeedlingCount += res.roiResults[index].seedlingCount;
 				finalResult.totalBodyHeight += res.roiResults[index].bodyHeight;
 				finalResult.totalBodyThickness += res.roiResults[index].bodyThickness;
 				finalResult.totalLeafLength += res.roiResults[index].leafLength;
-				finalResult.averageTotalBodyHeight = (finalResult.totalBodyHeight) / (finalResult.totalSeedlingCount);
-				finalResult.averageTotalBodyThickness = (finalResult.totalBodyThickness) / (finalResult.totalSeedlingCount);
-				finalResult.averageTotalLeafLength = (finalResult.totalLeafLength) / (finalResult.totalSeedlingCount);
 			}
 			else
 			{
-				cout << "Skipping file because there is no seedling for the analysis! " << endl;
+				cout << "Skipping file because there is bad argument for the analysis! " << endl;
+				cout << "" << endl;
 			}
 		}
 	}
+	
+	finalResult.averageTotalBodyHeight = (finalResult.totalBodyHeight) / (finalResult.totalSeedlingCount);
+	finalResult.averageTotalBodyThickness = (finalResult.totalBodyThickness) / (finalResult.totalSeedlingCount);
+	finalResult.averageTotalLeafLength = (finalResult.totalLeafLength) / (finalResult.totalSeedlingCount);
+
+	cout << "All files are examined, calculating the score..." << endl;
+	cout << "" << endl;
+	cout << "********************Score Screen******************" << endl;
+	cout << "" << endl;
+	
 	cout << "totalSeedlingCount: " << finalResult.totalSeedlingCount << endl;
 	cout << "totalBodyHeight: " << finalResult.totalBodyHeight << endl;
 	cout << "totalBodyThickness: " << finalResult.totalBodyThickness << endl;
 	cout << "totalLeafLength: " << finalResult.totalLeafLength << endl;
+	
+	cout << "********************_Specimen Real Results_(mm)******************" << endl;
+	cout << "specimenRealBodyThickness: " << specimenRealBodyThickness << endl;
+	cout << "specimenRealBodyHeight: " << specimenRealBodyHeight << endl;
+	cout << "specimenRealLeafLength: " << specimenRealLeafLength << endl;
 
+	cout << "********************_Specimen Real Results_(mm)******************" << endl;
+	cout << "specimenPxBodyThickness: " << specimenPxBodyThickness << endl;
+	cout << "specimenPxBodyHeight: " << specimenPxBodyHeight << endl;
+	cout << "specimenPxLeafLength: " << specimenPxLeafLength << endl;
+	
+	cout << "****************_Average Values_(px)******************" << endl;
 	cout << "averageTotalBodyHeight: " << finalResult.averageTotalBodyHeight << endl;
 	cout << "averageTotalBodyThickness: " << finalResult.averageTotalBodyThickness << endl;
 	cout << "averageTotalLeafLength: " << finalResult.averageTotalLeafLength << endl;
+
+	float calibrationValueLL = ((specimenRealLeafLength * 1000) / (specimenPxLeafLength * 1000));
+	float calibrationValueBH = ((specimenRealBodyHeight * 1000) / (specimenPxBodyHeight * 1000));
+	float calibrationValueBT = ((specimenRealBodyThickness * 1000) / (specimenPxBodyThickness * 1000));
+	
+	cout << "****************_Calibration Values_(mm)******************" << endl;
+	cout << "calibrationValueLeafLength: " << (ceil((calibrationValueLL * 100)) / 100) << endl;
+	cout << "calibrationValueBodyHeight: " << (ceil((calibrationValueBH * 100)) / 100) << endl;
+	cout << "calibrationValueBodyThickness: " << (ceil((calibrationValueBT * 100)) / 100) << endl;
+
+	cout << "****************_Calibrated End Results_(mm)******************" << endl;
+	cout << "EndResult_LeafLength: " << (((float)finalResult.averageTotalLeafLength) * (ceil((calibrationValueLL * 100)) / 100)) << endl;
+	cout << "EndResult_TotalBodyHeight: " << (((float)finalResult.averageTotalBodyHeight) * (ceil((calibrationValueBH * 100)) / 100)) << endl;
+	cout << "EndResult_TotalBodyThickness: " << (((float)finalResult.averageTotalBodyThickness) * (ceil((calibrationValueBT * 100)) / 100)) << endl;
+
 	//string image_path = "C:/IMG_3891.png";
 	//string image_path = "C:/4.png";
 	//Mat src = imread(image_path, IMREAD_COLOR);
