@@ -1,4 +1,4 @@
-**HAZIRLIK ve DONANIMSAL REVİZYON**
+*HAZIRLIK ve DONANIMSAL REVİZYON*
 
 Yeni versiyon sistemimimizde fide yetiştirme bantlarının katman
 sayısının birden fazla olması görüntü analizini etkileyecek boyutta bir
@@ -57,7 +57,7 @@ ayrıştırma yaptığımız için) hem de big data veri analizi ve veri seti
 oluşturma süreçleri için resimlerin analiz edilebilme özelliklerinden
 ödün vermeden alan kazanmamazı sağladı.
 
-**SINIFLANDIRMA**
+*SINIFLANDIRMA*
 
 Bitki büyüme evreleri Çimlenme, Genç Fide, Yetişkin Fide olmak üzere üç
 evreli gelişim süreci ile kullanıma uygun hâle gelmektedir.
@@ -163,7 +163,7 @@ OpenCV kütüphanesinden daha önceki çalışmamızda Python dili ile aktarım
 yapılıyordu. Yalnız hem kütüphane fonksiyonlarının çeşitliliği hem de
 daha hız kazanmak adına C++ dilini tercih edildi.
 
-En önemli başlıca sebepleri:
+*En önemli başlıca sebepleri:*
 
 C++\'ın en büyük avantajı performanstır. C++ verimli bir şekilde çalışır
 ve Python ile karşılaştırıldığında hız daha yüksektir. C++, gömülü
@@ -259,7 +259,8 @@ girmeyen tohumları bulunduran resimlerin analize girmesini engellemekti.
 Bu sayede hem hız kazandık hem de veri sınıflandırmasıyla ileride olacak
 projeler için ilk adımı atmış olduğumuz ortamı oluşturduk.
 
-**BÖLÜTLEME**![](./media/image5.png)
+*BÖLÜTLEME*
+![](./media/image5.png)
 
 Fide resimleri sınıflandırıldıktan sonra, içinde fide imgesi bulunduran
 görüntüler bölütleme algoritmasına girdi olarak verilmektedir.
