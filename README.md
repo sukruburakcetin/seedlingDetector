@@ -1,4 +1,4 @@
-*HAZIRLIK ve DONANIMSAL REVİZYON*
+# HAZIRLIK ve DONANIMSAL REVİZYON
 
 Yeni versiyon sistemimimizde fide yetiştirme bantlarının katman
 sayısının birden fazla olması görüntü analizini etkileyecek boyutta bir
@@ -57,7 +57,7 @@ ayrıştırma yaptığımız için) hem de big data veri analizi ve veri seti
 oluşturma süreçleri için resimlerin analiz edilebilme özelliklerinden
 ödün vermeden alan kazanmamazı sağladı.
 
-*SINIFLANDIRMA*
+# SINIFLANDIRMA
 
 Bitki büyüme evreleri Çimlenme, Genç Fide, Yetişkin Fide olmak üzere üç
 evreli gelişim süreci ile kullanıma uygun hâle gelmektedir.
@@ -163,7 +163,7 @@ OpenCV kütüphanesinden daha önceki çalışmamızda Python dili ile aktarım
 yapılıyordu. Yalnız hem kütüphane fonksiyonlarının çeşitliliği hem de
 daha hız kazanmak adına C++ dilini tercih edildi.
 
-*En önemli başlıca sebepleri:*
+## En önemli başlıca sebepleri:
 
 C++\'ın en büyük avantajı performanstır. C++ verimli bir şekilde çalışır
 ve Python ile karşılaştırıldığında hız daha yüksektir. C++, gömülü
@@ -259,7 +259,7 @@ girmeyen tohumları bulunduran resimlerin analize girmesini engellemekti.
 Bu sayede hem hız kazandık hem de veri sınıflandırmasıyla ileride olacak
 projeler için ilk adımı atmış olduğumuz ortamı oluşturduk.
 
-*BÖLÜTLEME*
+# BÖLÜTLEME
 ![](./media/image5.png)
 
 Fide resimleri sınıflandırıldıktan sonra, içinde fide imgesi bulunduran
@@ -310,7 +310,7 @@ işlemleri sistemin mekansal bilgi elde etmesini sağladı.
 patch\_size = 256\
 num\_epochs = 100**
 
-Sonuç çıktıları:
+## Sonuç çıktıları:
 
 ![](./media/image54.png){width="6.5in" height="2.59375in"}
 
@@ -624,7 +624,7 @@ Gerçek görüntü boyutları:
 
 19 mm 30mm 0,69 mm
 
-**TEST**
+# TEST
 
 ![](./media/image50.png)
 
@@ -634,7 +634,7 @@ Sıcaklığın Domastes bitkisi için 20 derecede ve 22 derecede sonuçları
 karşılaştırıldı. Bu karşılaştırma yapılırken iki adet eş zamanlı FARMER
 makinesi çalıştırıldı ve diğer parametreler sabit bırakıldı.
 
-**20 DERECE SONUÇLARI:**
+## SICAKLIK 20 DERECE SONUÇLARI:
 
 \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*Score
 Screen\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*
@@ -679,7 +679,7 @@ EndResult\_LeafLength: 15.48\
 EndResult\_TotalBodyHeight: 12.46\
 EndResult\_TotalBodyThickness: 0.6
 
-**SICAKLIK 22 DERECE SONUÇLARI:**
+## SICAKLIK 22 DERECE SONUÇLARI:
 
 \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*Score
 Screen\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*
@@ -726,8 +726,8 @@ EndResult\_TotalBodyThickness: 0.51
 
 **\*Milimetre bazında 20 derecenin 22 dereye göre bitkinin(domates)
 ideal gelişme sürecine daha olumlu etki ettiği gözlemlendi.**
-
-**NEM 80 BİRİM SONUÇLARI:**
+***
+## NEM 80 BİRİM SONUÇLARI:
 
 totalSeedlingCount: 6\
 totalBodyHeight: 867\
@@ -769,7 +769,7 @@ EndResult\_LeafLength: 13.68\
 EndResult\_TotalBodyHeight: 10.08\
 EndResult\_TotalBodyThickness: 0.57
 
-**NEM 100 BİRİM SONUÇLARI:**
+## NEM 100 BİRİM SONUÇLARI:
 
 \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*Score
 Screen\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*
@@ -817,7 +817,7 @@ EndResult\_TotalBodyThickness: 0.66
 **\*Milimetre bazında nem 100 birim nem 80 birime göre bitkinin(domates)
 ideal gelişme sürecine daha olumlu etki ettiği gözlemlendi.**
 
-**FAN RPM HIZI YÜKSEK SONUÇLARI:**
+## FAN RPM HIZI YÜKSEK SONUÇLARI:
 
 \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*Score
 Screen\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*
@@ -862,7 +862,7 @@ EndResult\_LeafLength: 16.74\
 EndResult\_TotalBodyHeight: 7.98\
 EndResult\_TotalBodyThickness: 0.54
 
-**FAN RPM DÜŞÜK SONUÇLARI:**
+## FAN RPM DÜŞÜK SONUÇLARI:
 
 totalSeedlingCount: 6\
 totalBodyHeight: 733\
@@ -907,8 +907,8 @@ EndResult\_TotalBodyThickness: 0.45
 **\*Milimetre bazında FAN RPM Yüksek hız FAN RPM Düşük hıza göre
 bitkinin(domates) ideal gelişme sürecine daha olumlu etki ettiği
 gözlemlendi.**
-
-**MOTOR RPM DÜŞÜK SONUÇLARI:**
+***
+## MOTOR RPM DÜŞÜK SONUÇLARI:
 
 totalSeedlingCount: 9\
 totalBodyHeight: 1080\
@@ -950,7 +950,7 @@ EndResult\_LeafLength: 16.74\
 EndResult\_TotalBodyHeight: 8.4\
 EndResult\_TotalBodyThickness: 0.48
 
-**MOTOR RPM YÜKSEK SONUÇLARI:**
+## MOTOR RPM YÜKSEK SONUÇLARI:
 
 \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*Score
 Screen\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*
